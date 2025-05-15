@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <Folder Include="Components\DAL\" />
-    <Folder Include="Components\Model\" />
     <Folder Include="Components\Pages\TecnicoModel\" />
     <Folder Include="Components\Service\" />
   </ItemGroup>
