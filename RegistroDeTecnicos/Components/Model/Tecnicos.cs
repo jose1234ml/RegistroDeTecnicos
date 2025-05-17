@@ -2,7 +2,7 @@
 
 namespace RegistroDeTecnicos.Components.Model
 {
-    public class Tecnico
+    public class Tecnicos
     {
         [Key]
         public int TecnicoId { get; set; }
