@@ -1,6 +1,6 @@
 ﻿@page "/Tecnico/Agregar"
 
-@inject TecnicoService tecnicoservice
+@inject TecnicoService tecnicoService
 @rendermode InteractiveServer
 
 <PageTitle>Agregar técnico</PageTitle>
@@ -75,7 +75,7 @@
     {
         ErrorGuardar = string.Empty;
 
-        if (await tecnicoservice.ExisteNombre(Tecnico.NombreTecnico))
+        if (await tecnicoService.ExisteNombre(Tecnico.NombreTecnico))
         {
             return false;
         }
@@ -95,7 +95,7 @@
             return;
         }
 
-        var guardo = await tecnicoservice.Guardar(this.Tecnico);
+        var guardo = await tecnicoService.Guardar(this.Tecnico);
 
         if (guardo != null)
         {
