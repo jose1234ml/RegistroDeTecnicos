@@ -14,9 +14,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Components\Model\" />
-    <Folder Include="Components\Pages\TecnicoModel\" />
-  </ItemGroup>
-
 </Project>
