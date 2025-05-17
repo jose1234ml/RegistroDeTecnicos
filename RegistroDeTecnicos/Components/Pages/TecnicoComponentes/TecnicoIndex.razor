@@ -2,12 +2,9 @@
 @inject TecnicoService tecnicoService
 @rendermode InteractiveServer
 
-<PageTitle>	Registro de tecnicos</PageTitle>
-
+<PageTitle>Registro de tecnicos</PageTitle>
 
 <section class="container card shadow-lg rounded">
-
-	@*Encabezado*@
 	<header class="card-header position-relative text-center">
 		<h4 class="card-title">Consulta de Técnicos</h4>
 
@@ -15,49 +12,34 @@
 			<span class="bi bi-plus-square"></span> Crear
 		</a>
 	</header>
-	@*Cuerpo*@
+
 	<div class="card-body">
-
-		@*Labels*@
 		<div class="filters row">
-
-		<div class="col-3">
-			<label class="col-form-label"><strong>Filtrar por</strong></label>
+			<div class="col-3">
+				<label class="col-form-label"><strong>Filtrar por</strong></label>
+			</div>
+			<div class="col-4">
+				<label class="col-form-label"><strong>Busqueda</strong></label>
+			</div>
 		</div>
 
-		<div class="col-4">
-			<label class="col-form-label"><strong>Busqueda</strong> </label>
-		</div>
-
-		</div>
-
-		@*Inputs*@
-		<div class="row aling-items-center">
+		<div class="row align-items-center">
 			<div class="col-3">
 				<InputSelect class="form-select" @bind-Value="Filtro">
-					<option value=""Selected disable>Seleccione una opción</option>
-					<option value="TecnicoId">TécnidoId</option>
+					<option value="" selected disabled>Seleccione una opción</option>
+					<option value="TecnicoId">TécnicoId</option>
 					<option value="Nombre">Nombre</option>
 				</InputSelect>
 			</div>
-
-			@*Botones y placeholder*@
 			<div class="col-4 border-end border-2">
 				<div class="input-group">
-					<input class="form-control" @bind="ValorFiltro"  placeholder="Buscador"/>
+					<input class="form-control" @bind="ValorFiltro" placeholder="Buscador" />
 					<button type="button" class="btn btn-outline-primary bi bi-search" @onclick="Buscar"></button>
-				</div>
-			</div>
-
-			<div class="col-5 border-end border2">
-				<div class="input-group">
-					<button class="btn btn-outline-primary btn-restablecer" @onclick="Restablecer">Restablecer</button>
 				</div>
 			</div>
 		</div>
 
-		@*Tablas*@
-		<div class="table-wrapper">
+		<div class="table-wrapper mt-3">
 			<table class="table table-hover">
 				<thead class="table-striper text-black">
 					<tr>
@@ -68,54 +50,102 @@
 						<th style="border-bottom: 2px solid;">Eliminar</th>
 					</tr>
 				</thead>
-
-				@foreach(var tecnico in ListaTecnicos)
-				{
-					<tr style="border-bottom:1px solid #ccc;">
-						<td>@tecnico.TecnicoId</td>
-						<td>@tecnico.NombreTecnico</td>
-						<td>@tecnico.SueldoHora</td>
-						<td><a href="Tecnico/Modificar/@tecnico.TecnicoId" class="btn btn-outline-primary bi bi-pencil-square"></a></td>
-						<td><a href="Tecnico/Eliminar/@tecnico.TecnicoId" class="btn btn-outline-danger bi bi-trash"></a></td>
-
-					</tr>
-
+				<tbody>
+					@foreach (var tecnico in ListaTecnicos)
+					{
+						<tr>
+							<td>@tecnico.TecnicoId</td>
+							<td>@tecnico.NombreTecnico</td>
+							<td>@tecnico.SueldoHora</td>
+							<td>
+								<a href="Tecnico/Modificar/@tecnico.TecnicoId" class="btn btn-outline-primary bi bi-pencil-square"></a>
+							</td>
+							<td>
+								<button class="btn btn-outline-danger bi bi-trash" @onclick="() => ConfirmarEliminar(tecnico)"></button>
+							</td>
+						</tr>
 					}
-
+				</tbody>
 			</table>
 		</div>
-
 	</div>
-
-
 </section>
 
+@if (MostrarModal)
+{
+	<div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+		<div class="modal-dialog">
+			<div class="modal-content shadow">
+				<div class="modal-header" style="background-color: #007bff; color: white;">
+					<h5 class="modal-title">Eliminar Tecnico</h5>
+				</div>
+				<div class="modal-body">
+					<p class="text-danger fw-bold">¿Estás seguro de que quieres eliminar el Tecnico?</p>
+					<div class="card">
+						<div class="card-header text-center" style="background-color: #f8f9fa;">
+							<strong>Datos del Tecnico</strong>
+						</div>
+						<div class="card-body">
+							<p><strong>TecnicoId:</strong> @TecnicoSeleccionado?.TecnicoId</p>
+							<p><strong>Nombres:</strong> @TecnicoSeleccionado?.NombreTecnico</p>
+							<p><strong>Sueldo Por Hora:</strong> @TecnicoSeleccionado?.SueldoHora</p>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button class="btn btn-outline-danger bi bi-trash" @onclick="Eliminar"> Eliminar</button>
+					<button class="btn btn-outline-primary bi bi-arrow-left" @onclick="CancelarEliminar"> Volver</button>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
 @code {
-	public List<Tecnicos> ListaTecnicos { get; set; } = new List<Tecnicos>();
+	public List<Tecnicos> ListaTecnicos { get; set; } = new();
 	public string Filtro { get; set; } = string.Empty;
 	public string ValorFiltro { get; set; } = string.Empty;
 
-	protected override async Task OnInitializedAsync(){
+	private Tecnicos? TecnicoSeleccionado { get; set; }
+	private bool MostrarModal { get; set; } = false;
+
+	protected override async Task OnInitializedAsync()
+	{
 		ListaTecnicos = await tecnicoService.Listar(t => t.TecnicoId > 0);
 	}
 
-	private async Task Buscar(){
-		if (Filtro == "Tecnico Id") {
-			if(int.TryParse(ValorFiltro, out var tecnicoId))
-			{
-				ListaTecnicos = await tecnicoService.Listar(t => t.TecnicoId == tecnicoId);
-			}
+	private async Task Buscar()
+	{
+		if (Filtro == "TecnicoId" && int.TryParse(ValorFiltro, out var tecnicoId))
+		{
+			ListaTecnicos = await tecnicoService.Listar(t => t.TecnicoId == tecnicoId);
 		}
-		else if(ValorFiltro.Trim()!=""&&Filtro=="Nombre"){
+		else if (!string.IsNullOrWhiteSpace(ValorFiltro) && Filtro == "Nombre")
+		{
 			ListaTecnicos = await tecnicoService.Listar(t => t.NombreTecnico.ToLower().Contains(ValorFiltro.ToLower()));
 		}
 		StateHasChanged();
 	}
-	private async Task Restablecer(){
-		ListaTecnicos = await tecnicoService.Listar(t => t.TecnicoId > 0);
-		Filtro = string.Empty;
-		ValorFiltro = string.Empty;
+
+	private void ConfirmarEliminar(Tecnicos tecnico)
+	{
+		TecnicoSeleccionado = tecnico;
+		MostrarModal = true;
+	}
+
+	private async Task Eliminar()
+	{
+		if (TecnicoSeleccionado is not null)
+		{
+			await tecnicoService.Eliminar(TecnicoSeleccionado.TecnicoId);
+			ListaTecnicos = await tecnicoService.Listar(t => t.TecnicoId > 0);
+			CancelarEliminar();
+		}
+	}
+
+	private void CancelarEliminar()
+	{
+		TecnicoSeleccionado = null;
+		MostrarModal = false;
 	}
 }
-
-

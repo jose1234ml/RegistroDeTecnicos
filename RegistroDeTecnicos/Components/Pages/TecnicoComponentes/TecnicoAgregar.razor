@@ -17,8 +17,8 @@
     </label>
 
     <div class="container card shadow-lg">
-        <div class="card-header text-center">
-            <h5 class="card-title">Registro de Técnicos</h5>
+        <div class="bg-primary text-white text-center p-3 rounded-top">
+            <h5 class="mb-0">Registro de Técnicos</h5>
         </div>
 
         <div class="card-body">
@@ -57,20 +57,15 @@
 </EditForm>
 
 @code {
-    // Modelo para capturar los datos del técnico
     private Tecnicos Tecnico { get; set; } = new Tecnicos();
-
-    // Mensajes de éxito y error para mostrar al usuario
     private string GuardarExito { get; set; } = string.Empty;
     private string ErrorGuardar { get; set; } = string.Empty;
 
-    // Inicializa un nuevo objeto técnico
     public void Nuevo()
     {
         this.Tecnico = new Tecnicos();
     }
 
-    // Revisa si el nombre ya existe antes de guardar
     private async Task<bool> Validar()
     {
         ErrorGuardar = string.Empty;
@@ -83,7 +78,6 @@
         return true;
     }
 
-    // Guarda los datos del técnico si pasa la validación
     public async Task Guardar()
     {
         ErrorGuardar = string.Empty;
