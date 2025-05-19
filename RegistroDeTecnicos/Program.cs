@@ -1,7 +1,7 @@
-using Microsoft.EntityFrameworkCore;
-using RegistroDeTecnicos.Components;
+﻿using Microsoft.EntityFrameworkCore;
 using RegistroDeTecnicos.Components.DAL;
 using RegistroDeTecnicos.Components.Service;
+using RegistroDeTecnicos.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,12 +9,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-//ConnetionString
-var ConStr = builder.Configuration.GetConnectionString("SqliteConStr");
+//var ConStr = builder.Configuration.GetConnectionString("SqlConStr");
+//builder.Services.AddDbContextFactory<Contexto>(o => o.UseSqlServer(ConStr));
 
-//Contexto
+var ConStr = builder.Configuration.GetConnectionString("SqliteConStr");
 builder.Services.AddDbContextFactory<Contexto>(o => o.UseSqlite(ConStr));
 
+// 💡 Registrar el servicio personalizado
 builder.Services.AddScoped<TecnicoService>();
 
 var app = builder.Build();
@@ -23,13 +24,10 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
-
 app.UseAntiforgery();
 
 app.MapStaticAssets();
