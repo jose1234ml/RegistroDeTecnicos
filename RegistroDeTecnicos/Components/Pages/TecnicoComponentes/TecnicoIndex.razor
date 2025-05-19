@@ -56,7 +56,7 @@
 						<tr>
 							<td>@tecnico.TecnicoId</td>
 							<td>@tecnico.NombreTecnico</td>
-							<td>@tecnico.SueldoHora</td>
+							<td>@tecnico.SueldoHora.ToString("F2")</td>
 							<td>
 								<button class="btn btn-outline-primary bi bi-pencil-square" @onclick="() => ConfirmarModificar(tecnico)"></button>
 							</td>
