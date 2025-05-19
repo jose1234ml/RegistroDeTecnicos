@@ -8,11 +8,12 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copia el archivo de proyecto y restaura dependencias
-COPY ["RegistroDeTecnicos.csproj", "./"]
+COPY ["RegistroDeTecnicos/RegistroDeTecnicos.csproj", "RegistroDeTecnicos/"]
+WORKDIR /src/RegistroDeTecnicos
 RUN dotnet restore "RegistroDeTecnicos.csproj"
 
 # Copia el resto de los archivos y publica
-COPY . .
+COPY RegistroDeTecnicos/. .
 RUN dotnet publish "RegistroDeTecnicos.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Imagen final para ejecución
