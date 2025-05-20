@@ -15,7 +15,6 @@
     }
 
     <div class="container card shadow-lg mt-4 p-0">
-        <!-- Header centrado y más grueso -->
         <header class="bg-light py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
             <h4 class="m-0">Modificar Técnico</h4>
         </header>
@@ -33,11 +32,10 @@
 
             <div class="mb-3">
                 <label class="form-label fw-bold">Sueldo</label>
-                <InputNumber class="form-control" @bind-Value="Tecnico.SueldoHora" />
+                <InputNumber class="form-control" @bind-Value="Tecnico.SueldoHora" format="N2" />
             </div>
         </div>
 
-        <!-- Botones centrados y pegados -->
         <div class="card-footer text-center">
             <div class="btn-group" role="group">
                 <a href="/Tecnico/Index" class="btn btn-outline-secondary">
