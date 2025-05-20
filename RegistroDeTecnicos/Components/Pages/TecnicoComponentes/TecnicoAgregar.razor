@@ -1,57 +1,60 @@
-﻿@page "/Tecnico/Agregar"
+﻿@page "/Tecnico/Crear"
 
-@inject TecnicoService tecnicoService
+@inject TecnicoService tecnicoservice
 @rendermode InteractiveServer
 
-<PageTitle>Agregar técnico</PageTitle>
+<PageTitle>Crear técnico</PageTitle>
 
 <EditForm Model="Tecnico" OnValidSubmit="Guardar">
     <DataAnnotationsValidator />
 
-    @* Mensajes de confirmación o error *@
-    <label style="font-size:18px; color:red;" hidden="@string.IsNullOrEmpty(ErrorGuardar)">
-        @ErrorGuardar
-    </label>
-    <label style="font-size:18px; color:green;" hidden="@string.IsNullOrEmpty(GuardarExito)">
-        @GuardarExito
-    </label>
+    @if (!string.IsNullOrEmpty(ErrorGuardar))
+    {
+        <div class="alert alert-danger">@ErrorGuardar</div>
+    }
+    @if (!string.IsNullOrEmpty(GuardarExito))
+    {
+        <div class="alert alert-success">@GuardarExito</div>
+    }
 
-    <div class="container card shadow-lg">
-        <div class="bg-primary text-white text-center p-3 rounded-top">
-            <h5 class="mb-0">Registro de Técnicos</h5>
-        </div>
+    <div class="container card shadow-lg mt-4 p-0">
+        <!-- Header gris claro y centrado -->
+        <header class="bg-light py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
+            <h4 class="m-0">Registro de Técnicos</h4>
+        </header>
 
         <div class="card-body">
             <div class="mb-3">
-                <label class="form-label"><strong>TecnicoId</strong></label>
+                <label class="form-label fw-bold">Técnico Id</label>
                 <InputNumber class="form-control" @bind-Value="Tecnico.TecnicoId" readonly />
             </div>
 
             <div class="mb-3">
-                <label class="form-label"><strong>Nombre</strong></label>
+                <label class="form-label fw-bold">Nombre</label>
                 <InputText class="form-control" @bind-Value="Tecnico.NombreTecnico" />
-                <ValidationMessage For="() => Tecnico.NombreTecnico" />
+                <ValidationMessage For="(()=>Tecnico.NombreTecnico)" />
             </div>
 
             <div class="mb-3">
-                <label class="form-label"><strong>Sueldo</strong></label>
+                <label class="form-label fw-bold">Sueldo</label>
                 <InputNumber class="form-control" @bind-Value="Tecnico.SueldoHora" />
-                <ValidationMessage For="() => Tecnico.SueldoHora" />
+                <ValidationMessage For="(()=>Tecnico.SueldoHora)" />
             </div>
         </div>
 
-        <div class="card-footer text-center mt-2">
-            <a href="/Tecnico/Index" class="btn btn-outline-primary">
-                <span class="bi bi-arrow-left"></span> Volver
-            </a>
-
-            <button type="submit" class="btn btn-outline-success bi bi-floppy" title="Guardar">
-                Guardar
-            </button>
-
-            <button type="submit" class="btn btn-outline-secondary bi bi-arrow-clockwise" @onclick="Nuevo" title="Nuevo">
-                Nuevo
-            </button>
+        <!-- Botones centrados y estilo outline -->
+        <div class="card-footer text-center">
+            <div class="btn-group" role="group">
+                <a href="/Tecnico/Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <button type="submit" class="btn btn-outline-success">
+                    <i class="bi bi-floppy"></i> Guardar
+                </button>
+                <button type="button" class="btn btn-outline-primary" @onclick="Nuevo">
+                    <i class="bi bi-arrow-clockwise"></i> Limpiar
+                </button>
+            </div>
         </div>
     </div>
 </EditForm>
@@ -69,19 +72,12 @@
     private async Task<bool> Validar()
     {
         ErrorGuardar = string.Empty;
-
-        if (await tecnicoService.ExisteNombre(Tecnico.NombreTecnico))
-        {
-            return false;
-        }
-
-        return true;
+        return !await tecnicoservice.ExisteNombre(Tecnico.NombreTecnico);
     }
 
     public async Task Guardar()
     {
-        ErrorGuardar = string.Empty;
-        GuardarExito = string.Empty;
+        ErrorGuardar = GuardarExito = string.Empty;
 
         if (!await Validar())
         {
@@ -89,8 +85,7 @@
             return;
         }
 
-        var guardo = await tecnicoService.Guardar(this.Tecnico);
-
+        var guardo = await tecnicoservice.Guardar(this.Tecnico);
         if (guardo != null)
         {
             GuardarExito = "Técnico guardado correctamente";

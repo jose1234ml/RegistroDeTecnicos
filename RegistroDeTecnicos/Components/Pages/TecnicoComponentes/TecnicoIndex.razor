@@ -1,53 +1,50 @@
 ﻿@page "/Tecnico/Index"
-@inject TecnicoService tecnicoService
+
+@inject TecnicoService tecnicoservice
 @rendermode InteractiveServer
 
-<PageTitle>Registro de tecnicos</PageTitle>
+<PageTitle>Registro</PageTitle>
 
-<section class="container card shadow-lg rounded">
-	<header class="card-header position-relative text-center">
-		<h4 class="card-title">Consulta de Técnicos</h4>
+<section class="container card shadow-lg rounded mt-4 p-0">
 
-		<a href="/Tecnico/Agregar" class="btn btn-success position-absolute end-0 top-0 mt-2 me-2">
-			<span class="bi bi-plus-square"></span> Crear
+	
+	<header class="bg-light py-4 px-7 position-relative border-bottom">
+		<h4 class="m-0 position-absolute start-50 top-50 translate-middle text-center">Consulta de Técnicos</h4>
+		<a href="/Tecnico/Crear" class="btn btn-success position-absolute end-0 top-50 translate-middle-y me-3">
+			<i class="bi bi-plus-square me-1"></i> Crear
 		</a>
 	</header>
 
 	<div class="card-body">
-		<div class="filters row">
-			<div class="col-3">
-				<label class="col-form-label"><strong>Filtrar por</strong></label>
-			</div>
-			<div class="col-4">
-				<label class="col-form-label"><strong>Busqueda</strong></label>
-			</div>
-		</div>
 
-		<div class="row align-items-center">
-			<div class="col-3">
+		<div class="row mb-3">
+			<div class="col-md-3">
+				<label class="form-label fw-bold">Filtrar por</label>
 				<InputSelect class="form-select" @bind-Value="Filtro">
-					<option value="" selected disabled>Seleccione una opción</option>
-					<option value="TecnicoId">TécnicoId</option>
+					<option disabled selected value="">Seleccione una opción</option>
+					<option value="TecnicoId">Técnico Id</option>
 					<option value="Nombre">Nombre</option>
 				</InputSelect>
 			</div>
-			<div class="col-4 border-end border-2">
+			<div class="col-md-5">
+				<label class="form-label fw-bold">Búsqueda</label>
 				<div class="input-group">
 					<input class="form-control" @bind="ValorFiltro" placeholder="Buscador" />
-					<button type="button" class="btn btn-outline-primary bi bi-search" @onclick="Buscar"></button>
+					<button class="btn btn-primary" @onclick="Buscar">
+						<i class="bi bi-search"></i>
+					</button>
 				</div>
 			</div>
 		</div>
 
-		<div class="table-wrapper mt-3">
+		<div class="table-responsive">
 			<table class="table table-hover">
-				<thead class="table-striper text-black">
+				<thead>
 					<tr>
-						<th style="border-bottom: 2px solid;">TecnicoId</th>
-						<th style="border-bottom: 2px solid;">Nombre</th>
-						<th style="border-bottom: 2px solid;">Sueldo por hora</th>
-						<th style="border-bottom: 2px solid;">Editar</th>
-						<th style="border-bottom: 2px solid;">Eliminar</th>
+						<th>Técnico Id</th>
+						<th>Nombre</th>
+						<th>Sueldo por hora</th>
+						<th>Editar</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -56,12 +53,11 @@
 						<tr>
 							<td>@tecnico.TecnicoId</td>
 							<td>@tecnico.NombreTecnico</td>
-							<td>@tecnico.SueldoHora.ToString("F2")</td>
+							<td>@tecnico.SueldoHora</td>
 							<td>
-								<button class="btn btn-outline-primary bi bi-pencil-square" @onclick="() => ConfirmarModificar(tecnico)"></button>
-							</td>
-							<td>
-								<button class="btn btn-outline-danger bi bi-trash" @onclick="() => ConfirmarEliminar(tecnico)"></button>
+								<a href="/Tecnico/Modificar/@tecnico.TecnicoId" class="btn btn-outline-primary">
+									<i class="bi bi-pencil-square"></i>
+								</a>
 							</td>
 						</tr>
 					}
@@ -69,155 +65,30 @@
 			</table>
 		</div>
 	</div>
+
+	<!-- Barra inferior gris sin texto -->
+	<footer class="bg-light py-3 border-top"></footer>
 </section>
 
-@if (MostrarModalEliminar)
-{
-	<div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-		<div class="modal-dialog">
-			<div class="modal-content shadow">
-				<div class="modal-header bg-primary text-white">
-					<h5 class="modal-title">Eliminar Técnico</h5>
-				</div>
-				<div class="modal-body">
-					<p class="text-danger fw-bold">¿Estás seguro de que quieres eliminar el Técnico?</p>
-					<div class="card">
-						<div class="card-header text-center bg-light">
-							<strong>Datos del Técnico</strong>
-						</div>
-						<div class="card-body">
-							<p><strong>TecnicoId:</strong> @TecnicoSeleccionado?.TecnicoId</p>
-							<p><strong>Nombres:</strong> @TecnicoSeleccionado?.NombreTecnico</p>
-							<p><strong>Sueldo Por Hora:</strong> @TecnicoSeleccionado?.SueldoHora</p>
-						</div>
-					</div>
-				</div>
-				<div class="modal-footer">
-					<button class="btn btn-outline-danger bi bi-trash" @onclick="Eliminar"> Eliminar</button>
-					<button class="btn btn-outline-primary bi bi-arrow-left" @onclick="CancelarEliminar"> Volver</button>
-				</div>
-			</div>
-		</div>
-	</div>
-}
-
-@if (MostrarModalModificar)
-{
-	<div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-		<div class="modal-dialog">
-			<div class="modal-content shadow">
-				<div class="modal-header bg-primary text-white">
-					<h5 class="modal-title">Registro de Tecnicos</h5>
-				</div>
-				<div class="modal-body">
-					<div class="mb-3">
-						<label class="form-label">TecnicoId</label>
-						<input class="form-control" @bind="TecnicoSeleccionado.TecnicoId" readonly />
-					</div>
-					<div class="mb-3">
-						<label class="form-label">Nombres</label>
-						<input class="form-control" @bind="TecnicoSeleccionado.NombreTecnico" />
-					</div>
-					<div class="mb-3">
-						<label class="form-label">Sueldo por hora</label>
-						<input class="form-control" @bind="TecnicoSeleccionado.SueldoHora" />
-					</div>
-				</div>
-				<div class="modal-footer">
-					<button class="btn btn-outline-primary bi bi-plus-square" @onclick="Nuevo"> Nuevo</button>
-					<button class="btn btn-success bi bi-check-circle" @onclick="Guardar"> Guardar</button>
-					<button class="btn btn-outline-primary bi bi-arrow-left" @onclick="CancelarModificar"> Retroceder</button>
-				</div>
-			</div>
-		</div>
-	</div>
-}
-
 @code {
-	public List<Tecnicos> ListaTecnicos { get; set; } = new();
+	public List<Tecnicos> ListaTecnicos { get; set; } = new List<Tecnicos>();
 	public string Filtro { get; set; } = string.Empty;
 	public string ValorFiltro { get; set; } = string.Empty;
 
-	private Tecnicos TecnicoSeleccionado { get; set; } = new();
-	private bool MostrarModalEliminar { get; set; } = false;
-	private bool MostrarModalModificar { get; set; } = false;
-
 	protected override async Task OnInitializedAsync()
 	{
-		ListaTecnicos = await tecnicoService.Listar(t => t.TecnicoId > 0);
+		ListaTecnicos = await tecnicoservice.Listar(t => t.TecnicoId > 0);
 	}
 
 	private async Task Buscar()
 	{
 		if (Filtro == "TecnicoId" && int.TryParse(ValorFiltro, out var tecnicoId))
 		{
-			ListaTecnicos = await tecnicoService.Listar(t => t.TecnicoId == tecnicoId);
+			ListaTecnicos = await tecnicoservice.Listar(t => t.TecnicoId == tecnicoId);
 		}
-		else if (!string.IsNullOrWhiteSpace(ValorFiltro) && Filtro == "Nombre")
+		else if (Filtro == "Nombre" && !string.IsNullOrWhiteSpace(ValorFiltro))
 		{
-			ListaTecnicos = await tecnicoService.Listar(t => t.NombreTecnico.ToLower().Contains(ValorFiltro.ToLower()));
+			ListaTecnicos = await tecnicoservice.Listar(t => t.NombreTecnico.ToLower().Contains(ValorFiltro.ToLower()));
 		}
-		StateHasChanged();
-	}
-
-	private void ConfirmarEliminar(Tecnicos tecnico)
-	{
-		TecnicoSeleccionado = tecnico;
-		MostrarModalEliminar = true;
-	}
-
-	private async Task Eliminar()
-	{
-		if (TecnicoSeleccionado is not null)
-		{
-			await tecnicoService.Eliminar(TecnicoSeleccionado.TecnicoId);
-			ListaTecnicos = await tecnicoService.Listar(t => t.TecnicoId > 0);
-			CancelarEliminar();
-		}
-	}
-
-	private void CancelarEliminar()
-	{
-		TecnicoSeleccionado = new();
-		MostrarModalEliminar = false;
-	}
-
-	private void ConfirmarModificar(Tecnicos tecnico)
-	{
-		TecnicoSeleccionado = new Tecnicos
-			{
-				TecnicoId = tecnico.TecnicoId,
-				NombreTecnico = tecnico.NombreTecnico,
-				SueldoHora = tecnico.SueldoHora
-			};
-		MostrarModalModificar = true;
-	}
-
-	private async Task Guardar()
-	{
-		if (TecnicoSeleccionado != null)
-		{
-			if (TecnicoSeleccionado.TecnicoId > 0)
-			{
-				await tecnicoService.ModificarTecnico(TecnicoSeleccionado);
-			}
-			else
-			{
-				await tecnicoService.InsertarTecnico(TecnicoSeleccionado);
-			}
-			ListaTecnicos = await tecnicoService.Listar(t => t.TecnicoId > 0);
-			CancelarModificar();
-		}
-	}
-
-	private void CancelarModificar()
-	{
-		TecnicoSeleccionado = new();
-		MostrarModalModificar = false;
-	}
-
-	private void Nuevo()
-	{
-		TecnicoSeleccionado = new();
 	}
 }

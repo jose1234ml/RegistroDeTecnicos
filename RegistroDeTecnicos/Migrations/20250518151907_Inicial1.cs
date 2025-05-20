@@ -2,21 +2,20 @@
 
 #nullable disable
 
-namespace RegistroDeTecnicos.Migrations
+namespace RegistroDeTecnicos.Migrations;
+
+/// <inheritdoc />
+public partial class Inicial1 : Migration
 {
     /// <inheritdoc />
-    public partial class Inicial1 : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
 
-        }
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
 
-        }
     }
 }

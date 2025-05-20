@@ -1,0 +1,92 @@
+﻿@page "/Tecnico/Modificar/{TecnicoId:int}"
+
+@inject TecnicoService tecnicoservice
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Modificar técnico</PageTitle>
+
+<EditForm Model="Tecnico" OnValidSubmit="Actualizar">
+    <DataAnnotationsValidator />
+
+    @if (!string.IsNullOrEmpty(Mensaje))
+    {
+        <div class="alert alert-info">@Mensaje</div>
+    }
+
+    <div class="container card shadow-lg mt-4 p-0">
+        <!-- Header centrado y más grueso -->
+        <header class="bg-light py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
+            <h4 class="m-0">Modificar Técnico</h4>
+        </header>
+
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Técnico Id</label>
+                <InputNumber class="form-control" @bind-Value="Tecnico.TecnicoId" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Nombre</label>
+                <InputText class="form-control" @bind-Value="Tecnico.NombreTecnico" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Sueldo</label>
+                <InputNumber class="form-control" @bind-Value="Tecnico.SueldoHora" />
+            </div>
+        </div>
+
+        <!-- Botones centrados y pegados -->
+        <div class="card-footer text-center">
+            <div class="btn-group" role="group">
+                <a href="/Tecnico/Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <button type="submit" class="btn btn-outline-success">
+                    <i class="bi bi-floppy"></i> Guardar
+                </button>
+                <button type="button" class="btn btn-outline-danger" @onclick="Eliminar">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int TecnicoId { get; set; }
+
+    private Tecnicos Tecnico { get; set; } = new Tecnicos();
+    private string Mensaje { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Tecnico = await tecnicoservice.Buscar(TecnicoId);
+    }
+
+    private async Task Actualizar()
+    {
+        if (await tecnicoservice.Guardar(Tecnico) != null)
+        {
+            Mensaje = "Técnico actualizado correctamente";
+        }
+        else
+        {
+            Mensaje = "Error al actualizar técnico";
+        }
+    }
+
+    private async Task Eliminar()
+    {
+        if (await tecnicoservice.Eliminar(TecnicoId) != null)
+        {
+            navigationManager.NavigateTo("/Tecnico/Index");
+        }
+        else
+        {
+            Mensaje = "No se pudo eliminar el técnico";
+        }
+    }
+}
