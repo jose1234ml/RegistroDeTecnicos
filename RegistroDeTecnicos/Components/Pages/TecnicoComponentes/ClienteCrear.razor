@@ -6,18 +6,11 @@
 
 <PageTitle>Crear Cliente</PageTitle>
 
+<Toast Mensaje="@MensajeToast" Tipo="@TipoToast" Visible="@ToastVisible" OnClose="CerrarToast" />
+
 <EditForm Model="Cliente" OnValidSubmit="Guardar" @key="Cliente">
     <DataAnnotationsValidator />
     <ValidationSummary />
-
-    @if (!string.IsNullOrEmpty(ErrorGuardar))
-    {
-        <div class="alert alert-danger">@ErrorGuardar</div>
-    }
-    @if (!string.IsNullOrEmpty(GuardarExito))
-    {
-        <div class="alert alert-success">@GuardarExito</div>
-    }
 
     <div class="container card shadow-lg mt-4 p-0">
         <header class="bg-light py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
@@ -94,8 +87,11 @@
 @code {
     private Cliente Cliente { get; set; } = new Cliente();
     private List<Tecnicos> ListaTecnicos { get; set; } = new();
-    private string GuardarExito { get; set; } = string.Empty;
-    private string ErrorGuardar { get; set; } = string.Empty;
+
+    // Toast properties
+    private bool ToastVisible { get; set; }
+    private string MensajeToast { get; set; } = string.Empty;
+    private string TipoToast { get; set; } = "success";
 
     protected override async Task OnInitializedAsync()
     {
@@ -106,19 +102,17 @@
     public void Nuevo()
     {
         Cliente = new Cliente
-            {
-                FechaIngreso = DateTime.Today
-            };
-        GuardarExito = ErrorGuardar = string.Empty;
+        {
+            FechaIngreso = DateTime.Today
+        };
+        OcultarToast();
     }
 
     private async Task<bool> Validar()
     {
-        ErrorGuardar = string.Empty;
-
         if (await clienteservice.ExisteNombreO_Rnc(Cliente.Nombres, Cliente.Rnc))
         {
-            ErrorGuardar = "Ya existe un cliente con el mismo Nombre o RNC.";
+            MostrarToast("Ya existe un cliente con el mismo Nombre o RNC.", "danger");
             return false;
         }
         return true;
@@ -126,19 +120,37 @@
 
     private async Task Guardar()
     {
-        GuardarExito = ErrorGuardar = string.Empty;
+        OcultarToast();
 
         if (!await Validar()) return;
 
         var guardado = await clienteservice.Guardar(Cliente);
         if (guardado != null)
         {
-            GuardarExito = "Cliente guardado correctamente";
+            MostrarToast("Cliente guardado correctamente", "success");
             Nuevo();
         }
         else
         {
-            ErrorGuardar = "Error al guardar el cliente";
+            MostrarToast("Error al guardar el cliente", "danger");
         }
+    }
+
+    private void MostrarToast(string mensaje, string tipo)
+    {
+        MensajeToast = mensaje;
+        TipoToast = tipo;
+        ToastVisible = true;
+    }
+
+    private void CerrarToast()
+    {
+        ToastVisible = false;
+    }
+
+    private void OcultarToast()
+    {
+        ToastVisible = false;
+        MensajeToast = string.Empty;
     }
 }

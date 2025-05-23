@@ -6,6 +6,8 @@
 
 <PageTitle>Eliminar Cliente</PageTitle>
 
+<Toast Mensaje="@MensajeToast" Tipo="@TipoToast" Visible="@ToastVisible" OnClose="CerrarToast" />
+
 <section class="container card shadow-lg mt-4 p-0">
     <header class="bg-light py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
         <h4 class="m-0">Eliminar Cliente</h4>
@@ -24,11 +26,6 @@
                     Cancelar
                 </button>
             </div>
-
-            @if (!string.IsNullOrEmpty(Mensaje))
-            {
-                <div class="alert alert-info mt-3">@Mensaje</div>
-            }
         }
         else
         {
@@ -43,7 +40,11 @@
     public int ClienteId { get; set; }
 
     private Cliente? Cliente { get; set; }
-    private string Mensaje { get; set; } = string.Empty;
+
+    // Toast
+    private bool ToastVisible { get; set; }
+    private string MensajeToast { get; set; } = string.Empty;
+    private string TipoToast { get; set; } = "info";
 
     protected override async Task OnInitializedAsync()
     {
@@ -52,6 +53,8 @@
 
     private async Task ConfirmarEliminar()
     {
+        OcultarToast();
+
         var eliminado = await clienteservice.Eliminar(ClienteId);
         if (eliminado != null)
         {
@@ -59,12 +62,30 @@
         }
         else
         {
-            Mensaje = "No se pudo eliminar el cliente.";
+            MostrarToast("No se pudo eliminar el cliente.", "danger");
         }
     }
 
     private void Cancelar()
     {
         navigationManager.NavigateTo("/Clientes/Index");
+    }
+
+    private void MostrarToast(string mensaje, string tipo)
+    {
+        MensajeToast = mensaje;
+        TipoToast = tipo;
+        ToastVisible = true;
+    }
+
+    private void CerrarToast()
+    {
+        ToastVisible = false;
+    }
+
+    private void OcultarToast()
+    {
+        ToastVisible = false;
+        MensajeToast = string.Empty;
     }
 }
