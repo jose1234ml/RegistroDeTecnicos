@@ -11,7 +11,6 @@ builder.Services.AddRazorComponents()
 var ConStr = builder.Configuration.GetConnectionString("SqliteConStr");
 builder.Services.AddDbContextFactory<Contexto>(o => o.UseSqlite(ConStr));
 
-// Registrar servicios, inyectando la fábrica de contexto para cada uno
 builder.Services.AddScoped<TecnicoService>();
 builder.Services.AddScoped<ClienteService>();
 
