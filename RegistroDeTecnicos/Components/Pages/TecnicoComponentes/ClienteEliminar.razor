@@ -1,0 +1,70 @@
+﻿@page "/Clientes/Eliminar/{ClienteId:int}"
+
+@inject ClienteService clienteservice
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Eliminar Cliente</PageTitle>
+
+<section class="container card shadow-lg mt-4 p-0">
+    <header class="bg-light py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
+        <h4 class="m-0">Eliminar Cliente</h4>
+    </header>
+
+    <div class="card-body text-center">
+        @if (Cliente != null)
+        {
+            <p>¿Está seguro que desea eliminar al cliente <strong>@Cliente.Nombres</strong> con RNC <strong>@Cliente.Rnc</strong>?</p>
+
+            <div class="btn-group">
+                <button class="btn btn-danger" @onclick="ConfirmarEliminar">
+                    <i class="bi bi-trash"></i> Sí, eliminar
+                </button>
+                <button class="btn btn-secondary" @onclick="Cancelar">
+                    Cancelar
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Mensaje))
+            {
+                <div class="alert alert-info mt-3">@Mensaje</div>
+            }
+        }
+        else
+        {
+            <p>Cliente no encontrado.</p>
+            <a href="/Clientes/Index" class="btn btn-primary">Volver al listado</a>
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter]
+    public int ClienteId { get; set; }
+
+    private Cliente? Cliente { get; set; }
+    private string Mensaje { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Cliente = await clienteservice.Buscar(ClienteId);
+    }
+
+    private async Task ConfirmarEliminar()
+    {
+        var eliminado = await clienteservice.Eliminar(ClienteId);
+        if (eliminado != null)
+        {
+            navigationManager.NavigateTo("/Clientes/Index");
+        }
+        else
+        {
+            Mensaje = "No se pudo eliminar el cliente.";
+        }
+    }
+
+    private void Cancelar()
+    {
+        navigationManager.NavigateTo("/Clientes/Index");
+    }
+}
