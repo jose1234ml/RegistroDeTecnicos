@@ -1,0 +1,120 @@
+﻿@page "/Clientes/Modificar/{ClienteId:int}"
+
+@inject ClienteService clienteservice
+@inject TecnicoService tecnicoservice
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Modificar Cliente</PageTitle>
+
+<EditForm Model="Cliente" OnValidSubmit="Actualizar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    @if (!string.IsNullOrEmpty(Mensaje))
+    {
+        <div class="alert alert-info">@Mensaje</div>
+    }
+
+    <div class="container card shadow-lg mt-4 p-0">
+        <header class="bg-light py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
+            <h4 class="m-0">Modificar Cliente</h4>
+        </header>
+
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Cliente Id</label>
+                <InputNumber class="form-control" @bind-Value="Cliente.ClienteId" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Nombre</label>
+                <InputText class="form-control" @bind-Value="Cliente.Nombres" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Dirección</label>
+                <InputText class="form-control" @bind-Value="Cliente.Direccion" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">RNC</label>
+                <InputText class="form-control" @bind-Value="Cliente.Rnc" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Límite de Crédito</label>
+                <InputNumber class="form-control" @bind-Value="Cliente.LimiteCredito" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Fecha de Ingreso</label>
+                <InputDate class="form-control" @bind-Value="Cliente.FechaIngreso" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Técnico Encargado</label>
+                <InputSelect class="form-control" @bind-Value="Cliente.TecnicoId">
+                    <option disabled value="">-- Seleccione un técnico --</option>
+                    @foreach (var tecnico in Tecnicos)
+                    {
+                        <option value="@tecnico.TecnicoId">@tecnico.NombreTecnico</option>
+                    }
+                </InputSelect>
+            </div>
+        </div>
+
+        <div class="card-footer text-center">
+            <div class="btn-group" role="group">
+                <a href="/Clientes/Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <button type="submit" class="btn btn-outline-success">
+                    <i class="bi bi-floppy"></i> Guardar
+                </button>
+                <button type="button" class="btn btn-outline-danger" @onclick="Eliminar">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int ClienteId { get; set; }
+
+    private Cliente Cliente { get; set; } = new();
+    private List<Tecnicos> Tecnicos { get; set; } = new();
+    private string Mensaje { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Cliente = await clienteservice.Buscar(ClienteId);
+        Tecnicos = await tecnicoservice.Listar(t => true); 
+    }
+
+    private async Task Actualizar()
+    {
+        if (await clienteservice.Guardar(Cliente) != null)
+        {
+            Mensaje = "Cliente actualizado correctamente";
+        }
+        else
+        {
+            Mensaje = "Error al actualizar cliente";
+        }
+    }
+
+    private async Task Eliminar()
+    {
+        if (await clienteservice.Eliminar(ClienteId) != null)
+        {
+            navigationManager.NavigateTo("/Clientes/Index");
+        }
+        else
+        {
+            Mensaje = "No se pudo eliminar el cliente";
+        }
+    }
+}
