@@ -17,7 +17,7 @@
     }
 
     <div class="container card shadow-lg mt-4 p-0">
-        <header class="bg-light py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
+        <header class="bg-primary text-white py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
             <h4 class="m-0">Modificar Cliente</h4>
         </header>
 
@@ -91,7 +91,7 @@
     protected override async Task OnInitializedAsync()
     {
         Cliente = await clienteservice.Buscar(ClienteId);
-        Tecnicos = await tecnicoservice.Listar(t => true); 
+        Tecnicos = await tecnicoservice.Listar(t => true);
     }
 
     private async Task Actualizar()
@@ -106,15 +106,8 @@
         }
     }
 
-    private async Task Eliminar()
+    private void Eliminar()
     {
-        if (await clienteservice.Eliminar(ClienteId) != null)
-        {
-            navigationManager.NavigateTo("/Clientes/Index");
-        }
-        else
-        {
-            Mensaje = "No se pudo eliminar el cliente";
-        }
+        navigationManager.NavigateTo($"/Clientes/Eliminar/{ClienteId}");
     }
 }

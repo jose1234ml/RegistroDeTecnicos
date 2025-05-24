@@ -6,52 +6,93 @@
 
 <PageTitle>Eliminar Cliente</PageTitle>
 
-<section class="container card shadow-lg mt-4 p-0">
-    <header class="bg-light py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
-        <h4 class="m-0">Eliminar Cliente</h4>
-    </header>
+<Toast Mensaje="@MensajeToast" Tipo="@TipoToast" Visible="@ToastVisible" OnClose="CerrarToast" />
 
-    <div class="card-body text-center">
-        @if (Cliente != null)
-        {
-            <p>¿Está seguro que desea eliminar al cliente <strong>@Cliente.Nombres</strong> con RNC <strong>@Cliente.Rnc</strong>?</p>
+<div class="container mt-4">
+    @if (!string.IsNullOrEmpty(Pregunta))
+    {
+        <div class="text-center text-danger fs-5 fw-bold mb-3">
+            @Pregunta
+        </div>
+    }
+</div>
 
-            <div class="btn-group">
-                <button class="btn btn-danger" @onclick="ConfirmarEliminar">
-                    <i class="bi bi-trash"></i> Sí, eliminar
-                </button>
-                <button class="btn btn-secondary" @onclick="Cancelar">
-                    Cancelar
-                </button>
-            </div>
-
-            @if (!string.IsNullOrEmpty(Mensaje))
-            {
-                <div class="alert alert-info mt-3">@Mensaje</div>
-            }
-        }
-        else
-        {
-            <p>Cliente no encontrado.</p>
-            <a href="/Clientes/Index" class="btn btn-primary">Volver al listado</a>
-        }
+<div class="card shadow-lg mt-3">
+    <div class="card-header text-center bg-primary text-white w-100">
+        <div class="container">
+            <h5 class="card-title mb-0">Eliminar Cliente</h5>
+        </div>
     </div>
-</section>
+
+    <div class="card-body">
+        <div class="container">
+            @if (Cliente != null)
+            {
+                <div class="card shadow-sm" style="width: 300px;">
+                    <div class="card-header bg-light fw-bold text-dark">
+                        Datos del Cliente
+                    </div>
+                    <div class="card-body text-start">
+                        <p><strong>Cliente ID:</strong> @Cliente.ClienteId</p>
+                        <p><strong>Nombre:</strong> @Cliente.Nombres</p>
+                        <p><strong>RNC:</strong> @Cliente.Rnc</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p class="text-center text-muted">Cliente no encontrado.</p>
+            }
+        </div>
+    </div>
+
+    <div class="card-footer text-center">
+        <div class="container">
+            @if (Cliente != null)
+            {
+                <div class="btn-group" role="group">
+                    <a href="/Clientes/Index" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </a>
+                    <button class="btn btn-outline-danger" @onclick="ConfirmarEliminar">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </button>
+                </div>
+            }
+            else
+            {
+                <a href="/Clientes/Index" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left"></i> Volver al listado
+                </a>
+            }
+        </div>
+    </div>
+</div>
 
 @code {
     [Parameter]
     public int ClienteId { get; set; }
 
     private Cliente? Cliente { get; set; }
-    private string Mensaje { get; set; } = string.Empty;
+
+    private bool ToastVisible { get; set; }
+    private string MensajeToast { get; set; } = string.Empty;
+    private string TipoToast { get; set; } = "info";
+    private string Pregunta { get; set; } = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         Cliente = await clienteservice.Buscar(ClienteId);
+        if (Cliente != null)
+        {
+            Pregunta = "¿Está seguro de eliminar el cliente?";
+        }
     }
 
     private async Task ConfirmarEliminar()
     {
+        OcultarToast();
+
         var eliminado = await clienteservice.Eliminar(ClienteId);
         if (eliminado != null)
         {
@@ -59,12 +100,25 @@
         }
         else
         {
-            Mensaje = "No se pudo eliminar el cliente.";
+            MostrarToast("No se pudo eliminar el cliente.", "danger");
         }
     }
 
-    private void Cancelar()
+    private void MostrarToast(string mensaje, string tipo)
     {
-        navigationManager.NavigateTo("/Clientes/Index");
+        MensajeToast = mensaje;
+        TipoToast = tipo;
+        ToastVisible = true;
+    }
+
+    private void CerrarToast()
+    {
+        ToastVisible = false;
+    }
+
+    private void OcultarToast()
+    {
+        ToastVisible = false;
+        MensajeToast = string.Empty;
     }
 }
