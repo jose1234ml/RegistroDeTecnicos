@@ -7,68 +7,83 @@
 <PageTitle>Eliminar Técnico</PageTitle>
 
 <div class="container mt-4">
-	<div class="alert alert-danger text-center" role="alert" hidden="@string.IsNullOrEmpty(Confirmacion)">
-		@Confirmacion
-	</div>
 
-	<div class="alert alert-warning text-center" role="alert" hidden="@string.IsNullOrEmpty(Pregunta)">
-		@Pregunta
-	</div>
+    @if (!string.IsNullOrEmpty(Confirmacion))
+    {
+        <div class="alert alert-danger text-center" role="alert">
+            @Confirmacion
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Pregunta))
+    {
+        <div class="text-center text-danger fs-5 fw-bold mb-3">
+            @Pregunta
+        </div>
+    }
 </div>
 
-<div class="container card shadow-lg mt-3">
+<div class="card shadow-lg mt-3">
+    <div class="card-header text-center bg-primary text-white w-100">
+        <div class="container">
+            <h5 class="card-title mb-0">Eliminar Técnico</h5>
+        </div>
+    </div>
 
-	<div class="card-header text-center">
-		<h5 class="card-title mb-0">Eliminar Técnico</h5>
-	</div>
+    <div class="card-body">
+        <div class="container">
+            <div class="card shadow-sm" style="width: 300px;">
+                <div class="card-header bg-light fw-bold text-dark">
+                    Datos del Técnico
+                </div>
+                <div class="card-body text-start">
+                    <p><strong>Técnico ID:</strong> @Tecnico.TecnicoId</p>
+                    <p><strong>Nombre:</strong> @Tecnico.NombreTecnico</p>
+                    <p><strong>Sueldo:</strong> @Tecnico.SueldoHora.ToString("N2")</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-	<div class="card-body">
-		<p><strong>Técnico ID:</strong> @Tecnico.TecnicoId</p>
-		<hr class="my-3" />
-
-		<p><strong>Nombre:</strong> @Tecnico.NombreTecnico</p>
-		<hr class="my-3" />
-
-		<p><strong>Sueldo:</strong> @Tecnico.SueldoHora.ToString("N2")</p>
-		<hr class="my-3" />
-	</div>
-
-	<div class="card-footer text-center">
-		<a href="/Tecnico/Index" class="btn btn-outline-primary me-2">
-			<i class="bi bi-arrow-left"></i> Volver
-		</a>
-
-		<button class="btn btn-outline-danger" @onclick="Borrar">
-			<i class="bi bi-trash"></i> Eliminar
-		</button>
-	</div>
+    <div class="card-footer text-center">
+        <div class="container">
+            <div class="btn-group" role="group">
+                <a href="/Tecnico/Index" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <button type="button" class="btn btn-outline-danger" @onclick="Borrar">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @code {
-	[Parameter]
-	public int TecnicoId { get; set; }
+    [Parameter]
+    public int TecnicoId { get; set; }
 
-	private Tecnicos Tecnico { get; set; } = new Tecnicos();
-	private string Confirmacion { get; set; } = string.Empty;
-	private string Pregunta { get; set; } = string.Empty;
+    private Tecnicos Tecnico { get; set; } = new();
+    private string Confirmacion { get; set; } = string.Empty;
+    private string Pregunta { get; set; } = string.Empty;
 
-	protected override async Task OnInitializedAsync()
-	{
-		Tecnico = await tecnicoService.Buscar(TecnicoId);
-		Pregunta = "¿Está seguro de eliminar el técnico?";
-	}
+    protected override async Task OnInitializedAsync()
+    {
+        Tecnico = await tecnicoService.Buscar(TecnicoId);
+        Pregunta = "¿Está seguro de eliminar el técnico?";
+    }
 
-	public async Task Borrar()
-	{
-		var eliminado = await tecnicoService.Eliminar(TecnicoId);
-		if (eliminado != null)
-		{
-			Confirmacion = "Técnico eliminado correctamente";
-			navigationManager.NavigateTo("/Tecnico/Index");
-		}
-		else
-		{
-			Confirmacion = "No se pudo eliminar al técnico";
-		}
-	}
+    public async Task Borrar()
+    {
+        var eliminado = await tecnicoService.Eliminar(TecnicoId);
+        if (eliminado != null)
+        {
+            Confirmacion = "Técnico eliminado correctamente";
+            navigationManager.NavigateTo("/Tecnico/Index");
+        }
+        else
+        {
+            Confirmacion = "No se pudo eliminar al técnico";
+        }
+    }
 }

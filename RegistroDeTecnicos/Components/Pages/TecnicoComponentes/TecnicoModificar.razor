@@ -15,7 +15,7 @@
     }
 
     <div class="container card shadow-lg mt-4 p-0">
-        <header class="bg-light py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
+        <header class="bg-primary text-white py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
             <h4 class="m-0">Modificar Técnico</h4>
         </header>
 
@@ -44,7 +44,7 @@
                 <button type="submit" class="btn btn-outline-success">
                     <i class="bi bi-floppy"></i> Guardar
                 </button>
-                <button type="button" class="btn btn-outline-danger" @onclick="Eliminar">
+                <button type="button" class="btn btn-outline-danger" @onclick="IrAEliminar">
                     <i class="bi bi-trash"></i> Eliminar
                 </button>
             </div>
@@ -76,15 +76,8 @@
         }
     }
 
-    private async Task Eliminar()
+    private void IrAEliminar()
     {
-        if (await tecnicoservice.Eliminar(TecnicoId) != null)
-        {
-            navigationManager.NavigateTo("/Tecnico/Index");
-        }
-        else
-        {
-            Mensaje = "No se pudo eliminar el técnico";
-        }
+        navigationManager.NavigateTo($"/Tecnico/Eliminar/{TecnicoId}");
     }
 }
