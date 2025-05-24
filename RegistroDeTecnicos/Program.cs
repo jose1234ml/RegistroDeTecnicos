@@ -12,11 +12,14 @@ var ConStr = builder.Configuration.GetConnectionString("SqliteConStr");
 builder.Services.AddDbContextFactory<Contexto>(o => o.UseSqlite(ConStr));
 
 builder.Services.AddScoped<TecnicoService>();
+builder.Services.AddScoped<ClienteService>();
 
 var app = builder.Build();
+
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<Contexto>();
+    var dbFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<Contexto>>();
+    using var db = dbFactory.CreateDbContext();
     db.Database.Migrate();
 }
 
