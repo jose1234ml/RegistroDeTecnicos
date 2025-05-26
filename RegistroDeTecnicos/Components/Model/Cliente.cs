@@ -23,6 +23,7 @@ namespace RegistroDeTecnicos.Components.Model
         public string Rnc { get; set; } = string.Empty;
 
         [Range(1, double.MaxValue, ErrorMessage = "El límite de crédito debe ser mayor que 0")]
+
         public decimal LimiteCredito { get; set; }
 
         [Required(ErrorMessage = "Debe seleccionar un técnico")]
