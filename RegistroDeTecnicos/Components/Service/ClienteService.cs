@@ -25,8 +25,6 @@ namespace RegistroDeTecnicos.Components.Service
                 .Include(c => c.Tecnico)
                 .ToListAsync();
         }
-
-        // 🔥 Nueva sobrecarga con criterio de filtro
         public async Task<List<Cliente>> ListarConTecnico(Expression<Func<Cliente, bool>> criterio)
         {
             return await contexto.Clientes
