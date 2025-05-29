@@ -1,0 +1,168 @@
+﻿@page "/Clientes/Crear"
+
+@inject ClienteService clienteservice
+@inject TecnicoService tecnicoservice
+@rendermode InteractiveServer
+
+<PageTitle>Crear Cliente</PageTitle>
+
+<Toast Mensaje="@MensajeToast" Tipo="@TipoToast" Visible="@ToastVisible" OnClose="CerrarToast" />
+
+<EditForm Model="Cliente" OnValidSubmit="Guardar" @key="Cliente">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container card shadow-lg mt-4 p-0">
+        <header class="bg-primary text-white py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
+            <h4 class="m-0">Registro de Clientes</h4>
+        </header>
+
+        <div class="card-body">
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Cliente Id</label>
+                <InputNumber class="form-control" @bind-Value="Cliente.ClienteId" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Nombre</label>
+                <InputText class="form-control" @bind-Value="Cliente.Nombres" required />
+                <ValidationMessage For="(() => Cliente.Nombres)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Dirección</label>
+                <InputText class="form-control" @bind-Value="Cliente.Direccion" required />
+                <ValidationMessage For="(() => Cliente.Direccion)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">RNC</label>
+                <InputText class="form-control" @bind-Value="Cliente.Rnc" required />
+                <ValidationMessage For="(() => Cliente.Rnc)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Límite Crédito</label>
+                <InputNumber class="form-control" @bind-Value="Cliente.LimiteCredito" required />
+                <ValidationMessage For="(() => Cliente.LimiteCredito)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Fecha de Ingreso</label>
+                <InputDate class="form-control" @bind-Value="Cliente.FechaIngreso" required />
+                <ValidationMessage For="(() => Cliente.FechaIngreso)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Técnico Encargado</label>
+
+                @if (ListaTecnicos.Count > 0)
+                {
+                    <InputSelect class="form-select" @bind-Value="Cliente.TecnicoId" required>
+                        <option value="">Seleccione un técnico</option>
+                        @foreach (var tecnico in ListaTecnicos)
+                        {
+                            <option value="@tecnico.TecnicoId">@tecnico.NombreTecnico</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="(() => Cliente.TecnicoId)" />
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        No hay técnicos registrados. No se puede guardar el cliente.
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+        <div class="card-footer text-center">
+            <div class="btn-group" role="group">
+                <a href="/Clientes/Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <button type="submit" class="btn btn-outline-success" disabled="@(!PuedeGuardar)">
+                    <i class="bi bi-floppy"></i> Guardar
+                </button>
+                <button type="button" class="btn btn-outline-primary" @onclick="Nuevo">
+                    <i class="bi bi-arrow-clockwise"></i> Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private Cliente Cliente { get; set; } = new Cliente();
+    private List<Tecnicos> ListaTecnicos { get; set; } = new();
+
+    private bool ToastVisible { get; set; }
+    private string MensajeToast { get; set; } = string.Empty;
+    private string TipoToast { get; set; } = "success";
+
+    private bool PuedeGuardar => ListaTecnicos.Count > 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListaTecnicos = await tecnicoservice.Listar(t => t.TecnicoId > 0);
+        Cliente.FechaIngreso = DateTime.Today;
+    }
+
+    public void Nuevo()
+    {
+        Cliente = new Cliente
+        {
+            FechaIngreso = DateTime.Today
+        };
+        OcultarToast();
+    }
+
+    private async Task<bool> Validar()
+    {
+        if (await clienteservice.ExisteNombreO_Rnc(Cliente.Nombres, Cliente.Rnc))
+        {
+            MostrarToast("Ya existe un cliente con el mismo Nombre o RNC.", "danger");
+            return false;
+        }
+        return true;
+    }
+
+    private async Task Guardar()
+    {
+        OcultarToast();
+
+        if (!await Validar()) return;
+
+        var guardado = await clienteservice.Guardar(Cliente);
+        if (guardado != null)
+        {
+            MostrarToast("Cliente guardado correctamente", "success");
+            Nuevo();
+        }
+        else
+        {
+            MostrarToast("Error al guardar el cliente", "danger");
+        }
+    }
+
+    private void MostrarToast(string mensaje, string tipo)
+    {
+        MensajeToast = mensaje;
+        TipoToast = tipo;
+        ToastVisible = true;
+    }
+
+    private void CerrarToast()
+    {
+        ToastVisible = false;
+    }
+
+    private void OcultarToast()
+    {
+        ToastVisible = false;
+        MensajeToast = string.Empty;
+    }
+}

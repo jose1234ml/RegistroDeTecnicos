@@ -1,4 +1,4 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿<div class="top-row ps-3 navbar navbar-dark bg-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">RegistroDeTecnicos</a>
     </div>
@@ -9,18 +9,32 @@
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            <NavLink class="nav-link d-flex align-items-center gap-2" href="" Match="NavLinkMatch.All">
+                <i class="bi bi-house-door-fill fs-5" aria-hidden="true"></i>
+                <span class="nav-text-adjusted">Home</span>
             </NavLink>
         </div>
 
-        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link d-flex align-items-center gap-2" href="/Tecnico/index">
+                <i class="bi bi-person-gear fs-5" aria-hidden="true"></i>
+                <span class="nav-text-adjusted">Registro de técnicos</span>
+            </NavLink>
+        </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/Tecnico/index">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Registro de tecnicos
+            <NavLink class="nav-link d-flex align-items-center gap-2" href="/Clientes/Index">
+                <i class="bi bi-people-fill fs-5" aria-hidden="true"></i>
+                <span class="nav-text-adjusted">Registro de clientes</span>
             </NavLink>
         </div>
     </nav>
 </div>
+
+<style>
+    .nav-text-adjusted {
+        position: relative;
+        top: 15px;
+    }
+</style>
 

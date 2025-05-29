@@ -1,0 +1,20 @@
+﻿@code {
+    [Parameter] public string? Mensaje { get; set; }
+    [Parameter] public string Tipo { get; set; } = "success"; // success, danger, warning
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+}
+
+@if (Visible)
+{
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+        <div class="toast show align-items-center text-white bg-@Tipo border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    @Mensaje
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" @onclick="() => OnClose.InvokeAsync()" />
+            </div>
+        </div>
+    </div>
+}
