@@ -63,11 +63,17 @@ namespace RegistroDeTecnicos.Components.Service
             }
             return null;
         }
-
-        // ✅ MÉTODO AGREGADO
-        public async Task<List<Cliente>> ObtenerClientes()
+        public async Task<List<Cliente>> ListarClientes()
         {
             return await contexto.Clientes.ToListAsync();
         }
+        public async Task<List<Cliente>> Listar(Expression<Func<Cliente, bool>> criterio)
+        {
+            return await contexto.Clientes
+                .Include(c => c.Tecnico)
+                .Where(criterio)
+                .ToListAsync();
+        }
+
     }
 }

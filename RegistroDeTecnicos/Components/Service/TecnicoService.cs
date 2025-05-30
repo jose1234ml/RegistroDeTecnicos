@@ -74,8 +74,7 @@ namespace RegistroDeTecnicos.Components.Service
             return await context.SaveChangesAsync() > 0;
         }
 
-        // ✅ MÉTODO AGREGADO
-        public async Task<List<Tecnicos>> ObtenerTecnicos()
+        public async Task<List<Tecnicos>> ListarTecnicos()
         {
             await using var context = await DbFactory.CreateDbContextAsync();
             return await context.Tecnicos.AsNoTracking().ToListAsync();
