@@ -26,44 +26,55 @@
 
             <div class="mb-3">
                 <label class="form-label fw-bold">Nombre</label>
-                <InputText class="form-control" @bind-Value="Cliente.Nombres" />
+                <InputText class="form-control" @bind-Value="Cliente.Nombres" required />
                 <ValidationMessage For="(() => Cliente.Nombres)" />
             </div>
 
             <div class="mb-3">
                 <label class="form-label fw-bold">Dirección</label>
-                <InputText class="form-control" @bind-Value="Cliente.Direccion" />
+                <InputText class="form-control" @bind-Value="Cliente.Direccion" required />
                 <ValidationMessage For="(() => Cliente.Direccion)" />
             </div>
 
             <div class="mb-3">
                 <label class="form-label fw-bold">RNC</label>
-                <InputText class="form-control" @bind-Value="Cliente.Rnc" />
+                <InputText class="form-control" @bind-Value="Cliente.Rnc" required />
                 <ValidationMessage For="(() => Cliente.Rnc)" />
             </div>
 
             <div class="mb-3">
                 <label class="form-label fw-bold">Límite Crédito</label>
-                <InputNumber class="form-control" @bind-Value="Cliente.LimiteCredito" />
+                <InputNumber class="form-control" @bind-Value="Cliente.LimiteCredito" required />
                 <ValidationMessage For="(() => Cliente.LimiteCredito)" />
             </div>
 
             <div class="mb-3">
                 <label class="form-label fw-bold">Fecha de Ingreso</label>
-                <InputDate class="form-control" @bind-Value="Cliente.FechaIngreso" />
+                <InputDate class="form-control" @bind-Value="Cliente.FechaIngreso" required />
                 <ValidationMessage For="(() => Cliente.FechaIngreso)" />
             </div>
 
             <div class="mb-3">
                 <label class="form-label fw-bold">Técnico Encargado</label>
-                <InputSelect class="form-select" @bind-Value="Cliente.TecnicoId">
-                    <option value="">Seleccione un técnico</option>
-                    @foreach (var tecnico in ListaTecnicos)
-                    {
-                        <option value="@tecnico.TecnicoId">@tecnico.NombreTecnico</option>
-                    }
-                </InputSelect>
-                <ValidationMessage For="(() => Cliente.TecnicoId)" />
+
+                @if (ListaTecnicos.Count > 0)
+                {
+                    <InputSelect class="form-select" @bind-Value="Cliente.TecnicoId" required>
+                        <option value="">Seleccione un técnico</option>
+                        @foreach (var tecnico in ListaTecnicos)
+                        {
+                            <option value="@tecnico.TecnicoId">@tecnico.NombreTecnico</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="(() => Cliente.TecnicoId)" />
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        No hay técnicos registrados. No se puede guardar el cliente.
+                    </div>
+                }
+
             </div>
 
         </div>
@@ -73,7 +84,7 @@
                 <a href="/Clientes/Index" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Volver
                 </a>
-                <button type="submit" class="btn btn-outline-success">
+                <button type="submit" class="btn btn-outline-success" disabled="@(!PuedeGuardar)">
                     <i class="bi bi-floppy"></i> Guardar
                 </button>
                 <button type="button" class="btn btn-outline-primary" @onclick="Nuevo">
@@ -91,6 +102,8 @@
     private bool ToastVisible { get; set; }
     private string MensajeToast { get; set; } = string.Empty;
     private string TipoToast { get; set; } = "success";
+
+    private bool PuedeGuardar => ListaTecnicos.Count > 0;
 
     protected override async Task OnInitializedAsync()
     {

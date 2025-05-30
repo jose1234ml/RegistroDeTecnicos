@@ -2,6 +2,7 @@
 using RegistroDeTecnicos.Components.DAL;
 using RegistroDeTecnicos.Components.Service;
 using RegistroDeTecnicos.Components;
+using Blazored.Toast;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,7 @@ builder.Services.AddRazorComponents()
 
 var ConStr = builder.Configuration.GetConnectionString("SqliteConStr");
 builder.Services.AddDbContextFactory<Contexto>(o => o.UseSqlite(ConStr));
+builder.Services.AddBlazoredToast();
 
 builder.Services.AddScoped<TecnicoService>();
 builder.Services.AddScoped<ClienteService>();

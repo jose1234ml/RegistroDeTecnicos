@@ -3,6 +3,7 @@
 @inject ClienteService clienteservice
 @inject TecnicoService tecnicoservice
 @inject NavigationManager navigationManager
+@inject IToastService itoastService
 @rendermode InteractiveServer
 
 <PageTitle>Modificar Cliente</PageTitle>
@@ -26,32 +27,26 @@
                 <label class="form-label fw-bold">Cliente Id</label>
                 <InputNumber class="form-control" @bind-Value="Cliente.ClienteId" readonly />
             </div>
-
             <div class="mb-3">
                 <label class="form-label fw-bold">Nombre</label>
                 <InputText class="form-control" @bind-Value="Cliente.Nombres" />
             </div>
-
             <div class="mb-3">
                 <label class="form-label fw-bold">Dirección</label>
                 <InputText class="form-control" @bind-Value="Cliente.Direccion" />
             </div>
-
             <div class="mb-3">
                 <label class="form-label fw-bold">RNC</label>
                 <InputText class="form-control" @bind-Value="Cliente.Rnc" />
             </div>
-
             <div class="mb-3">
                 <label class="form-label fw-bold">Límite de Crédito</label>
                 <InputNumber class="form-control" @bind-Value="Cliente.LimiteCredito" />
             </div>
-
             <div class="mb-3">
                 <label class="form-label fw-bold">Fecha de Ingreso</label>
                 <InputDate class="form-control" @bind-Value="Cliente.FechaIngreso" />
             </div>
-
             <div class="mb-3">
                 <label class="form-label fw-bold">Técnico Encargado</label>
                 <InputSelect class="form-control" @bind-Value="Cliente.TecnicoId">
@@ -72,13 +67,58 @@
                 <button type="submit" class="btn btn-outline-success">
                     <i class="bi bi-floppy"></i> Guardar
                 </button>
-                <button type="button" class="btn btn-outline-danger" @onclick="Eliminar">
+                <button type="button" class="btn btn-outline-danger" @onclick="() => MostrarConfirmacion = true">
                     <i class="bi bi-trash"></i> Eliminar
                 </button>
             </div>
         </div>
     </div>
 </EditForm>
+
+@if (MostrarConfirmacion)
+{
+    <div class="modal fade show d-block bg-dark bg-opacity-50" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+
+                <div class="card shadow-lg">
+                    <div class="card-header text-center bg-danger text-white">
+                        <h5 class="card-title mb-0">Eliminar Cliente</h5>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="text-center text-danger fs-5 fw-bold mb-3">
+                            ¿Está seguro de eliminar el cliente?
+                        </div>
+
+                        <div class="card shadow-sm mx-auto" style="width: 300px;">
+                            <div class="card-header bg-light fw-bold text-dark">
+                                Datos del Cliente
+                            </div>
+                            <div class="card-body text-start">
+                                <p><strong>Cliente ID:</strong> @Cliente.ClienteId</p>
+                                <p><strong>Nombre:</strong> @Cliente.Nombres</p>
+                                <p><strong>RNC:</strong> @Cliente.Rnc</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer text-center">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-outline-secondary" @onclick="() => MostrarConfirmacion = false">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </button>
+                            <button class="btn btn-outline-danger" @onclick="ConfirmarEliminar">
+                                <i class="bi bi-trash"></i> Confirmar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     [Parameter]
@@ -87,6 +127,7 @@
     private Cliente Cliente { get; set; } = new();
     private List<Tecnicos> Tecnicos { get; set; } = new();
     private string Mensaje { get; set; } = string.Empty;
+    private bool MostrarConfirmacion { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,15 +140,29 @@
         if (await clienteservice.Guardar(Cliente) != null)
         {
             Mensaje = "Cliente actualizado correctamente";
+            itoastService.ShowSuccess("Cliente actualizado correctamente.");
         }
         else
         {
             Mensaje = "Error al actualizar cliente";
+            itoastService.ShowError("Error al actualizar cliente.");
         }
     }
 
-    private void Eliminar()
+    private async Task ConfirmarEliminar()
     {
-        navigationManager.NavigateTo($"/Clientes/Eliminar/{ClienteId}");
+        MostrarConfirmacion = false;
+
+        var eliminado = await clienteservice.Eliminar(ClienteId);
+        if (eliminado != null)
+        {
+            itoastService.ShowSuccess("Cliente eliminado correctamente.");
+            navigationManager.NavigateTo("/Clientes/Index");
+        }
+        else
+        {
+            Mensaje = "No se pudo eliminar el cliente";
+            itoastService.ShowError("No se pudo eliminar el cliente.");
+        }
     }
 }
