@@ -1,29 +1,34 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RegistroDeTecnicos.Components.Model;
 
-namespace RegistroDeTecnicos.Components.DAL;
-public class Contexto : DbContext
+namespace RegistroDeTecnicos.Components.DAL
 {
-    public Contexto(DbContextOptions<Contexto> options) : base(options) { }
-    public DbSet<Tecnicos> Tecnicos { get; set; }
-    public DbSet<Cliente> Clientes { get; set; }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    public class Contexto : DbContext
     {
-        base.OnModelCreating(modelBuilder);
+        public Contexto(DbContextOptions<Contexto> options) : base(options) { }
 
-        modelBuilder.Entity<Cliente>()
-            .HasIndex(c => c.Nombres)
-            .IsUnique();
+        public DbSet<Tecnicos> Tecnicos { get; set; }
+        public DbSet<Cliente> Clientes { get; set; }
+        public DbSet<Ticket> Tickets { get; set; } 
 
-        modelBuilder.Entity<Cliente>()
-            .HasIndex(c => c.Rnc)
-            .IsUnique();
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Cliente>()
-            .HasOne(c => c.Tecnico)
-            .WithMany()
-            .HasForeignKey(c => c.TecnicoId)
-            .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Cliente>()
+                .HasIndex(c => c.Nombres)
+                .IsUnique();
+
+            modelBuilder.Entity<Cliente>()
+                .HasIndex(c => c.Rnc)
+                .IsUnique();
+
+            modelBuilder.Entity<Cliente>()
+                .HasOne(c => c.Tecnico)
+                .WithMany()
+                .HasForeignKey(c => c.TecnicoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+        }
     }
 }
