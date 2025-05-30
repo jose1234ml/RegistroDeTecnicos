@@ -43,10 +43,7 @@
                 <label class="form-label fw-bold">Límite de Crédito</label>
                 <InputNumber class="form-control" @bind-Value="Cliente.LimiteCredito" />
             </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">Fecha de Ingreso</label>
-                <InputDate class="form-control" @bind-Value="Cliente.FechaIngreso" />
-            </div>
+         
             <div class="mb-3">
                 <label class="form-label fw-bold">Técnico Encargado</label>
                 <InputSelect class="form-control" @bind-Value="Cliente.TecnicoId">
@@ -139,7 +136,6 @@
     {
         if (await clienteservice.Guardar(Cliente) != null)
         {
-            Mensaje = "Cliente actualizado correctamente";
             itoastService.ShowSuccess("Cliente actualizado correctamente.");
         }
         else
@@ -161,7 +157,7 @@
         }
         else
         {
-            Mensaje = "No se pudo eliminar el cliente";
+         
             itoastService.ShowError("No se pudo eliminar el cliente.");
         }
     }
