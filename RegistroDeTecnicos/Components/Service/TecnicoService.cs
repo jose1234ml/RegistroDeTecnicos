@@ -14,7 +14,6 @@ namespace RegistroDeTecnicos.Components.Service
             DbFactory = dbFactory;
         }
 
-        // Guardar: Inserta o modifica dependiendo de si el técnico existe
         public async Task<bool> Guardar(Tecnicos tecnicos)
         {
             if (!await ExisteId(tecnicos.TecnicoId))
@@ -27,21 +26,18 @@ namespace RegistroDeTecnicos.Components.Service
             }
         }
 
-        // Verifica si el ID de un técnico ya existe
         public async Task<bool> ExisteId(int TecnicoId)
         {
             await using var context = await DbFactory.CreateDbContextAsync();
             return await context.Tecnicos.AnyAsync(t => t.TecnicoId == TecnicoId);
         }
 
-        // Verifica si ya existe un técnico con el mismo nombre
         public async Task<bool> ExisteNombre(string TecnicoNombre)
         {
             await using var context = await DbFactory.CreateDbContextAsync();
             return await context.Tecnicos.AnyAsync(n => n.NombreTecnico == TecnicoNombre);
         }
 
-        // Insertar un nuevo técnico en la base de datos
         public async Task<bool> InsertarTecnico(Tecnicos tecnicos)
         {
             await using var context = await DbFactory.CreateDbContextAsync();
@@ -49,14 +45,12 @@ namespace RegistroDeTecnicos.Components.Service
             return await context.SaveChangesAsync() > 0;
         }
 
-        // Buscar un técnico por su ID
         public async Task<Tecnicos?> Buscar(int TecnicoId)
         {
             await using var context = await DbFactory.CreateDbContextAsync();
             return await context.Tecnicos.FirstOrDefaultAsync(t => t.TecnicoId == TecnicoId);
         }
 
-        // Modificar los detalles de un técnico existente
         public async Task<bool> ModificarTecnico(Tecnicos tecnicos)
         {
             await using var context = await DbFactory.CreateDbContextAsync();
@@ -64,14 +58,12 @@ namespace RegistroDeTecnicos.Components.Service
             return await context.SaveChangesAsync() > 0;
         }
 
-        // Listar técnicos basados en un criterio específico
         public async Task<List<Tecnicos>> Listar(Expression<Func<Tecnicos, bool>> criterio)
         {
             await using var context = await DbFactory.CreateDbContextAsync();
             return await context.Tecnicos.Where(criterio).AsNoTracking().ToListAsync();
         }
 
-        // Eliminar un técnico de la base de datos por su ID
         public async Task<bool> Eliminar(int TecnicoId)
         {
             await using var context = await DbFactory.CreateDbContextAsync();
@@ -80,6 +72,13 @@ namespace RegistroDeTecnicos.Components.Service
 
             context.Tecnicos.Remove(tecnico);
             return await context.SaveChangesAsync() > 0;
+        }
+
+        // ✅ MÉTODO AGREGADO
+        public async Task<List<Tecnicos>> ObtenerTecnicos()
+        {
+            await using var context = await DbFactory.CreateDbContextAsync();
+            return await context.Tecnicos.AsNoTracking().ToListAsync();
         }
     }
 }

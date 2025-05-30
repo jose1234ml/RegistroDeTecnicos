@@ -25,6 +25,7 @@ namespace RegistroDeTecnicos.Components.Service
                 .Include(c => c.Tecnico)
                 .ToListAsync();
         }
+
         public async Task<List<Cliente>> ListarConTecnico(Expression<Func<Cliente, bool>> criterio)
         {
             return await contexto.Clientes
@@ -61,6 +62,12 @@ namespace RegistroDeTecnicos.Components.Service
                 return cliente;
             }
             return null;
+        }
+
+        // ✅ MÉTODO AGREGADO
+        public async Task<List<Cliente>> ObtenerClientes()
+        {
+            return await contexto.Clientes.ToListAsync();
         }
     }
 }
