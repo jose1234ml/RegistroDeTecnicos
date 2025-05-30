@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Blazored.Toast;
+using Microsoft.EntityFrameworkCore;
+using RegistroDeTecnicos.Components;
 using RegistroDeTecnicos.Components.DAL;
 using RegistroDeTecnicos.Components.Service;
-using RegistroDeTecnicos.Components;
-using Blazored.Toast;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +15,7 @@ builder.Services.AddBlazoredToast();
 
 builder.Services.AddScoped<TecnicoService>();
 builder.Services.AddScoped<ClienteService>();
+builder.Services.AddScoped<TicketService>();
 
 var app = builder.Build();
 

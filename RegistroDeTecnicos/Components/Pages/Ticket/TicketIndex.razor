@@ -1,0 +1,139 @@
+﻿@page "/Tickets/Index"
+@inject TicketService ticketService
+@rendermode InteractiveServer
+
+<PageTitle>Tickets</PageTitle>
+
+<section class="container card shadow-lg rounded mt-4 p-0">
+    <header class="bg-light py-4 px-4 position-relative border-bottom">
+        <h4 class="m-0 position-absolute start-50 top-50 translate-middle text-center">Listado de Tickets</h4>
+        <a href="/Tickets/Crear" class="btn btn-success position-absolute end-0 top-50 translate-middle-y me-3">
+            <i class="bi bi-plus-square me-1"></i> Crear
+        </a>
+    </header>
+
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Filtrar por</label>
+                <InputSelect class="form-select" @bind-Value="Filtro">
+                    <option disabled selected value="">Seleccione una opción</option>
+                    <option value="Prioridad">Prioridad</option>
+                    <option value="Cliente">Nombre Cliente</option>
+                    <option value="Asunto">Asunto</option>
+                    <option value="Descripcion">Descripción</option>
+                    <option value="Tecnico">Nombre Técnico</option>
+                </InputSelect>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Valor</label>
+                <div class="input-group">
+                    <input class="form-control" @bind="ValorFiltro" placeholder="Valor del filtro" />
+                    <button class="btn btn-primary" @onclick="Buscar">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Desde</label>
+                <InputDate class="form-control" @bind-Value="FechaDesde" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Hasta</label>
+                <InputDate class="form-control" @bind-Value="FechaHasta" />
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Asunto</th>
+                        <th>Descripción</th>
+                        <th>Prioridad</th>
+                        <th>Cliente</th>
+                        <th>Técnico</th>
+                        <th>Tiempo Invertido (hrs)</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ticket in ListaTickets)
+                    {
+                        <tr>
+                            <td>@ticket.Fecha.ToShortDateString()</td>
+                            <td>@ticket.Asunto</td>
+                            <td>@ticket.Descripcion</td>
+                            <td>@ticket.Prioridad</td>
+                            <td>@ticket.Cliente?.Nombres</td>
+                            <td>@ticket.Tecnico?.NombreTecnico</td>
+                            <td>@ticket.TiempoInvertido</td>
+                            <td>
+                                <a class="btn btn-outline-warning btn-sm me-1" href="/Tickets/Modificar/@ticket.TicketId">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a class="btn btn-outline-danger btn-sm" href="/Tickets/Eliminar/@ticket.TicketId">
+                                    <i class="bi bi-trash3"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="bg-light py-3 border-top"></footer>
+</section>
+
+@code {
+    private List<Ticket> ListaTickets { get; set; } = new();
+    private string Filtro { get; set; } = string.Empty;
+    private string ValorFiltro { get; set; } = string.Empty;
+    private DateTime? FechaDesde { get; set; }
+    private DateTime? FechaHasta { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListaTickets = await ticketService.ObtenerTickets();
+    }
+
+    private async Task Buscar()
+    {
+        var resultado = await ticketService.ObtenerTickets();
+
+        if (FechaDesde.HasValue)
+            resultado = resultado.Where(t => t.Fecha.Date >= FechaDesde.Value.Date).ToList();
+
+        if (FechaHasta.HasValue)
+            resultado = resultado.Where(t => t.Fecha.Date <= FechaHasta.Value.Date).ToList();
+
+        if (!string.IsNullOrWhiteSpace(Filtro) && !string.IsNullOrWhiteSpace(ValorFiltro))
+        {
+            switch (Filtro)
+            {
+                case "Prioridad":
+                    resultado = resultado.Where(t => t.Prioridad.ToLower().Contains(ValorFiltro.ToLower())).ToList();
+                    break;
+                case "Cliente":
+                    resultado = resultado.Where(t => t.Cliente != null && t.Cliente.Nombres.ToLower().Contains(ValorFiltro.ToLower())).ToList();
+                    break;
+                case "Asunto":
+                    resultado = resultado.Where(t => t.Asunto != null && t.Asunto.ToLower().Contains(ValorFiltro.ToLower())).ToList();
+                    break;
+                case "Descripcion":
+                    resultado = resultado.Where(t => t.Descripcion != null && t.Descripcion.ToLower().Contains(ValorFiltro.ToLower())).ToList();
+                    break;
+                case "Tecnico":
+                    resultado = resultado.Where(t => t.Tecnico != null && t.Tecnico.NombreTecnico.ToLower().Contains(ValorFiltro.ToLower())).ToList();
+                    break;
+            }
+        }
+
+        ListaTickets = resultado;
+    }
+}
