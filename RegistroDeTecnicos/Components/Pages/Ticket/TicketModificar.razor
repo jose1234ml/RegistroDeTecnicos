@@ -1,0 +1,184 @@
+﻿@page "/Tickets/Modificar/{TicketId:int}"
+
+@inject TicketService ticketService
+@inject ClienteService clienteService
+@inject TecnicoService tecnicoService
+@inject NavigationManager navigationManager
+@inject IToastService toastService
+@rendermode InteractiveServer
+
+<PageTitle>Modificar Ticket</PageTitle>
+
+<EditForm Model="Ticket" OnValidSubmit="Actualizar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    @if (!string.IsNullOrEmpty(Mensaje))
+    {
+        <div class="alert alert-info">@Mensaje</div>
+    }
+
+    <div class="container card shadow-lg mt-4 p-0">
+        <header class="bg-primary text-white py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
+            <h4 class="m-0">Modificar Ticket</h4>
+        </header>
+
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Ticket ID</label>
+                <InputNumber class="form-control" @bind-Value="Ticket.TicketId" readonly />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Fecha</label>
+                <InputDate class="form-control" @bind-Value="Ticket.Fecha" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Prioridad</label>
+                <InputSelect class="form-control" @bind-Value="Ticket.Prioridad">
+                    <option disabled value="">-- Seleccione la prioridad --</option>
+                    <option>Alta</option>
+                    <option>Media</option>
+                    <option>Baja</option>
+                </InputSelect>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Cliente</label>
+                <InputSelect class="form-control" @bind-Value="Ticket.ClienteId">
+                    <option disabled value="">-- Seleccione un cliente --</option>
+                    @foreach (var cliente in Clientes)
+                    {
+                        <option value="@cliente.ClienteId">@cliente.Nombres</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Asunto</label>
+                <InputText class="form-control" @bind-Value="Ticket.Asunto" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Descripción</label>
+                <InputTextArea class="form-control" @bind-Value="Ticket.Descripcion" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Tiempo Invertido (horas)</label>
+                <InputNumber class="form-control" @bind-Value="Ticket.TiempoInvertido" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Técnico Encargado</label>
+                <InputSelect class="form-control" @bind-Value="Ticket.TecnicoId">
+                    <option disabled value="">-- Seleccione un técnico --</option>
+                    @foreach (var tecnico in Tecnicos)
+                    {
+                        <option value="@tecnico.TecnicoId">@tecnico.NombreTecnico</option>
+                    }
+                </InputSelect>
+            </div>
+        </div>
+
+        <div class="card-footer text-center">
+            <div class="btn-group" role="group">
+                <a href="/Tickets/Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <button type="submit" class="btn btn-outline-success">
+                    <i class="bi bi-floppy"></i> Guardar
+                </button>
+                <button type="button" class="btn btn-outline-danger" @onclick="() => MostrarConfirmacion = true">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@if (MostrarConfirmacion)
+{
+    <div class="modal fade show d-block bg-dark bg-opacity-50" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+
+                <div class="card shadow-lg">
+                    <div class="card-header text-center bg-danger text-white">
+                        <h5 class="card-title mb-0">Eliminar Ticket</h5>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="text-center text-danger fs-5 fw-bold mb-3">
+                            ¿Está seguro de eliminar el ticket?
+                        </div>
+
+                        <div class="card shadow-sm mx-auto" style="width: 300px;">
+                            <div class="card-header bg-light fw-bold text-dark">
+                                Datos del Ticket
+                            </div>
+                            <div class="card-body text-start">
+                                <p><strong>Ticket ID:</strong> @Ticket.TicketId</p>
+                                <p><strong>Asunto:</strong> @Ticket.Asunto</p>
+                                <p><strong>Cliente:</strong> @(Clientes.FirstOrDefault(c => c.ClienteId == Ticket.ClienteId)?.Nombres)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer text-center">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-outline-secondary" @onclick="() => MostrarConfirmacion = false">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </button>
+                            <button class="btn btn-outline-danger" @onclick="ConfirmarEliminar">
+                                <i class="bi bi-trash"></i> Confirmar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int TicketId { get; set; }
+
+    private Ticket Ticket { get; set; } = new();
+    private List<Cliente> Clientes { get; set; } = new();
+    private List<Tecnicos> Tecnicos { get; set; } = new();
+    private string Mensaje { get; set; } = string.Empty;
+    private bool MostrarConfirmacion { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Ticket = await ticketService.Buscar(TicketId);
+        Clientes = await clienteService.Listar(c => true);
+        Tecnicos = await tecnicoService.Listar(t => true);
+    }
+
+    private async Task Actualizar()
+    {
+        if (await ticketService.Guardar(Ticket) != null)
+        {
+            toastService.ShowSuccess("Ticket actualizado correctamente.");
+        }
+        else
+        {
+            Mensaje = "Error al actualizar ticket";
+            toastService.ShowError("Error al actualizar ticket.");
+        }
+    }
+
+    private async Task ConfirmarEliminar()
+    {
+        MostrarConfirmacion = false;
+
+        var eliminado = await ticketService.Eliminar(TicketId);
+        if (eliminado != null)
+        {
+            toastService.ShowSuccess("Ticket eliminado correctamente.");
+            navigationManager.NavigateTo("/Tickets/Index");
+        }
+        else
+        {
+            toastService.ShowError("No se pudo eliminar el ticket.");
+        }
+    }
+}

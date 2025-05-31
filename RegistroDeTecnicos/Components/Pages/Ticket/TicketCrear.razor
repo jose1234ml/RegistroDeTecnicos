@@ -129,7 +129,7 @@
     {
         OcultarToast();
 
-        var guardado = await ticketService.GuardarTicket(Ticket);
+        var guardado = await ticketService.Guardar(Ticket);
         if (guardado != null)
         {
             toastService.ShowSuccess("Ticket guardado correctamente");

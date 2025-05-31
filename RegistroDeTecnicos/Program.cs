@@ -17,6 +17,9 @@ builder.Services.AddScoped<TecnicoService>();
 builder.Services.AddScoped<ClienteService>();
 builder.Services.AddScoped<TicketService>();
 
+
+
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

@@ -3,77 +3,76 @@ using RegistroDeTecnicos.Components.DAL;
 using RegistroDeTecnicos.Components.Model;
 using System.Linq.Expressions;
 
-namespace RegistroDeTecnicos.Components.Service
+namespace RegistroDeTecnicos.Components.Service;
+
+public class TicketService
 {
-    public class TicketService
+    private readonly Contexto _contexto;
+
+    public TicketService(Contexto contexto)
     {
-        private readonly Contexto _contexto;
+        _contexto = contexto;
+    }
 
-        public TicketService(Contexto contexto)
+    public async Task<bool> ExisteAsuntoOPrioridad(string asunto, string prioridad)
+    {
+        return await _contexto.Tickets
+            .AnyAsync(t => t.Asunto == asunto || t.Prioridad == prioridad);
+    }
+
+    public async Task<List<Ticket>> Listar()
+    {
+        return await _contexto.Tickets
+            .Include(t => t.Cliente)
+            .Include(t => t.Tecnico)
+            .ToListAsync();
+    }
+
+    public async Task<List<Ticket>> Listar(Expression<Func<Ticket, bool>> criterio)
+    {
+        return await _contexto.Tickets
+            .Include(t => t.Cliente)
+            .Include(t => t.Tecnico)
+            .Where(criterio)
+            .ToListAsync();
+    }
+    public async Task<Ticket?> Buscar(int ticketId)
+    {
+        return await _contexto.Tickets
+            .Include(t => t.Cliente)
+            .Include(t => t.Tecnico)
+            .FirstOrDefaultAsync(t => t.TicketId == ticketId);
+    }
+    public async Task<Ticket?> Guardar(Ticket ticket)
+    {
+        if (ticket.TicketId == 0)
         {
-            _contexto = contexto;
+            _contexto.Tickets.Add(ticket);
+        }
+        else
+        {
+            _contexto.Entry(ticket).State = EntityState.Modified;
         }
 
-        public async Task<bool> ExisteAsuntoOPrioridad(string asunto, string prioridad)
+        await _contexto.SaveChangesAsync();
+        return ticket;
+    }
+    public async Task<Ticket?> Eliminar(int ticketId)
+    {
+        var ticket = await _contexto.Tickets.FindAsync(ticketId);
+        if (ticket != null)
         {
-            return await _contexto.Tickets.AnyAsync(t => t.Asunto == asunto || t.Prioridad == prioridad);
-        }
-
-        public async Task<List<Ticket>> Listar()
-        {
-            return await _contexto.Tickets
-                .Include(t => t.Cliente)
-                .Include(t => t.Tecnico)
-                .ToListAsync();
-        }
-
-        public async Task<List<Ticket>> Listar(Expression<Func<Ticket, bool>> criterio)
-        {
-            return await _contexto.Tickets
-                .Include(t => t.Cliente)
-                .Include(t => t.Tecnico)
-                .Where(criterio)
-                .ToListAsync();
-        }
-
-        public async Task<Ticket?> GuardarTicket(Ticket ticket)
-        {
-            if (ticket.TicketId == 0)
-            {
-                _contexto.Tickets.Add(ticket);
-            }
-            else
-            {
-                _contexto.Tickets.Update(ticket);
-            }
-
+            _contexto.Tickets.Remove(ticket);
             await _contexto.SaveChangesAsync();
             return ticket;
         }
-
-        public async Task<Ticket?> ObtenerTicketPorId(int ticketId)
-        {
-            return await _contexto.Tickets
-                .Include(t => t.Cliente)
-                .Include(t => t.Tecnico)
-                .FirstOrDefaultAsync(t => t.TicketId == ticketId);
-        }
-
-        public async Task<Ticket?> EliminarTicket(int ticketId)
-        {
-            var ticket = await _contexto.Tickets.FindAsync(ticketId);
-            if (ticket != null)
-            {
-                _contexto.Tickets.Remove(ticket);
-                await _contexto.SaveChangesAsync();
-                return ticket;
-            }
-            return null;
-        }
-
-        public async Task<List<Ticket>> ObtenerTickets()
-        {
-            return await _contexto.Tickets.ToListAsync();
-        }
+        return null;
+    }
+    public async Task<List<Ticket>> ObtenerTickets()
+    {
+        return await _contexto.Tickets
+            .Include(t => t.Cliente)
+            .Include(t => t.Tecnico)
+            .ToListAsync();
     }
 }

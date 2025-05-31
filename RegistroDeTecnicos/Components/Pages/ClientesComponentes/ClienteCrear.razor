@@ -1,12 +1,10 @@
 ﻿@page "/Clientes/Crear"
 
-
 @inject ClienteService clienteservice
 @inject TecnicoService tecnicoservice
 @rendermode InteractiveServer
 @inject IToastService itoastServices
-
-
+ 
 <PageTitle>Crear Cliente</PageTitle>
 
 <Toast Mensaje="@MensajeToast" Tipo="@TipoToast" Visible="@ToastVisible" OnClose="CerrarToast" />
