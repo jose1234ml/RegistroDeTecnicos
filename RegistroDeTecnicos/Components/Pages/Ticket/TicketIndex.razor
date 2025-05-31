@@ -64,9 +64,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if (ListaTickets?.Any() == true)
+                    @if (paginacionTickets?.Items?.Any() == true)
                     {
-                        @foreach (var ticket in ListaTickets)
+                        @foreach (var ticket in paginacionTickets.Items)
                         {
                             <tr>
                                 <td>@ticket.TicketId</td>
@@ -81,7 +81,6 @@
                                     <a class="btn btn-outline-warning btn-sm me-1" href="/Tickets/Modificar/@ticket.TicketId">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
-                                   
                                 </td>
                             </tr>
                         }
@@ -97,57 +96,91 @@
         </div>
     </div>
 
-    <footer class="bg-light py-3 border-top"></footer>
+    <footer class="bg-light py-3 border-top">
+        @if (paginacionTickets != null)
+        {
+            <div class="d-flex justify-content-center mt-4">
+                <button class="btn btn-outline-primary" @onclick="() => CambiarPagina(paginacionTickets.PaginaActual - 1)" disabled="@(!paginacionTickets.TienePaginaAnterior)">
+                    Anterior
+                </button>
+
+                <span class="mx-3"> Página @paginacionTickets.PaginaActual de @paginacionTickets.TotalPaginas </span>
+
+                <button class="btn btn-outline-primary" @onclick="() => CambiarPagina(paginacionTickets.PaginaActual + 1)" disabled="@(!paginacionTickets.TienePaginaSiguiente)">
+                    Siguiente
+                </button>
+            </div>
+        }
+    </footer>
 </section>
 
 @code {
-    private List<Ticket> ListaTickets { get; set; } = new();
+    private Paginacion<Ticket>? paginacionTickets;
+    private List<Ticket> todosLosTickets { get; set; } = new(); 
     private string Filtro { get; set; } = string.Empty;
     private string ValorFiltro { get; set; } = string.Empty;
     private DateTime? FechaDesde { get; set; }
     private DateTime? FechaHasta { get; set; }
 
+    private int PaginaActual = 1;
+    private const int ElementosPorPagina = 5; 
+
     protected override async Task OnInitializedAsync()
     {
-        ListaTickets = await ticketService.ObtenerTickets();
+        todosLosTickets = await ticketService.ObtenerTickets();
+        AplicarPaginacion();
     }
 
     private async Task Buscar()
     {
-        var resultado = await ticketService.ObtenerTickets();
+        todosLosTickets = await ticketService.ObtenerTickets(); 
 
         if (FechaDesde.HasValue)
-            resultado = resultado.Where(t => t.Fecha.Date >= FechaDesde.Value.Date).ToList();
+            todosLosTickets = todosLosTickets.Where(t => t.Fecha.Date >= FechaDesde.Value.Date).ToList();
 
         if (FechaHasta.HasValue)
-            resultado = resultado.Where(t => t.Fecha.Date <= FechaHasta.Value.Date).ToList();
-
+            todosLosTickets = todosLosTickets.Where(t => t.Fecha.Date <= FechaHasta.Value.Date).ToList();
         if (!string.IsNullOrWhiteSpace(Filtro) && !string.IsNullOrWhiteSpace(ValorFiltro))
         {
             switch (Filtro)
             {
                 case "TicketId":
                     if (int.TryParse(ValorFiltro, out var id))
-                        resultado = resultado.Where(t => t.TicketId == id).ToList();
+                        todosLosTickets = todosLosTickets.Where(t => t.TicketId == id).ToList();
                     break;
                 case "Prioridad":
-                    resultado = resultado.Where(t => t.Prioridad?.Contains(ValorFiltro, StringComparison.OrdinalIgnoreCase) == true).ToList();
+                    todosLosTickets = todosLosTickets.Where(t => t.Prioridad?.Contains(ValorFiltro, StringComparison.OrdinalIgnoreCase) == true).ToList();
                     break;
                 case "Cliente":
-                    resultado = resultado.Where(t => t.Cliente?.Nombres?.Contains(ValorFiltro, StringComparison.OrdinalIgnoreCase) == true).ToList();
+                    todosLosTickets = todosLosTickets.Where(t => t.Cliente?.Nombres?.Contains(ValorFiltro, StringComparison.OrdinalIgnoreCase) == true).ToList();
                     break;
                 case "Asunto":
-                    resultado = resultado.Where(t => t.Asunto?.Contains(ValorFiltro, StringComparison.OrdinalIgnoreCase) == true).ToList();
+                    todosLosTickets = todosLosTickets.Where(t => t.Asunto?.Contains(ValorFiltro, StringComparison.OrdinalIgnoreCase) == true).ToList();
                     break;
                 case "Descripcion":
-                    resultado = resultado.Where(t => t.Descripcion?.Contains(ValorFiltro, StringComparison.OrdinalIgnoreCase) == true).ToList();
+                    todosLosTickets = todosLosTickets.Where(t => t.Descripcion?.Contains(ValorFiltro, StringComparison.OrdinalIgnoreCase) == true).ToList();
                     break;
                 case "Tecnico":
-                    resultado = resultado.Where(t => t.Tecnico?.NombreTecnico?.Contains(ValorFiltro, StringComparison.OrdinalIgnoreCase) == true).ToList();
+                    todosLosTickets = todosLosTickets.Where(t => t.Tecnico?.NombreTecnico?.Contains(ValorFiltro, StringComparison.OrdinalIgnoreCase) == true).ToList();
                     break;
             }
         }
 
-        ListaTickets = resultado;
+        PaginaActual = 1; 
+        AplicarPaginacion();
+    }
+
+    private void AplicarPaginacion()
+    {
+        paginacionTickets = new Paginacion<Ticket>(todosLosTickets, PaginaActual, ElementosPorPagina);
+    }
+
+    private void CambiarPagina(int nuevaPagina)
+    {
+        if (paginacionTickets != null && nuevaPagina >= 1 && nuevaPagina <= paginacionTickets.TotalPaginas)
+        {
+            PaginaActual = nuevaPagina;
+            AplicarPaginacion();
+        }
     }
 }
