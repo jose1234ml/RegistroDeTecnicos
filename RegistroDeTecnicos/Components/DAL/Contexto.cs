@@ -2,11 +2,14 @@
 using RegistroDeTecnicos.Components.Model;
 
 namespace RegistroDeTecnicos.Components.DAL;
+
 public class Contexto : DbContext
 {
     public Contexto(DbContextOptions<Contexto> options) : base(options) { }
+
     public DbSet<Tecnicos> Tecnicos { get; set; }
     public DbSet<Cliente> Clientes { get; set; }
+    public DbSet<Ticket> Tickets { get; set; } 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,5 +28,6 @@ public class Contexto : DbContext
             .WithMany()
             .HasForeignKey(c => c.TecnicoId)
             .OnDelete(DeleteBehavior.Restrict);
+
     }
 }

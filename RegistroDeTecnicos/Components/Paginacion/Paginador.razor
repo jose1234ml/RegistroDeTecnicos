@@ -1,0 +1,37 @@
+﻿<div class="d-flex justify-content-center mt-4">
+    <button class="btn btn-outline-primary" @onclick="IrPaginaAnterior" disabled="@(!TienePaginaAnterior)">
+        Anterior
+    </button>
+
+    <span class="mx-3"> Página @PaginaActual de @TotalPaginas </span>
+
+    <button class="btn btn-outline-primary" @onclick="IrPaginaSiguiente" disabled="@(!TienePaginaSiguiente)">
+        Siguiente
+    </button>
+</div>
+
+@code {
+    [Parameter] public int PaginaActual { get; set; }
+    [Parameter] public int TotalPaginas { get; set; }
+    [Parameter] public EventCallback<int> OnPaginaAnterior { get; set; }
+    [Parameter] public EventCallback<int> OnPaginaSiguiente { get; set; }
+
+    private bool TienePaginaAnterior => PaginaActual > 1;
+    private bool TienePaginaSiguiente => PaginaActual < TotalPaginas;
+
+    private async Task IrPaginaAnterior()
+    {
+        if (TienePaginaAnterior)
+        {
+            await OnPaginaAnterior.InvokeAsync(PaginaActual - 1);
+        }
+    }
+
+    private async Task IrPaginaSiguiente()
+    {
+        if (TienePaginaSiguiente)
+        {
+            await OnPaginaSiguiente.InvokeAsync(PaginaActual + 1);
+        }
+    }
+}

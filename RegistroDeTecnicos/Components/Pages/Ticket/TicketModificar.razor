@@ -1,14 +1,15 @@
-﻿@page "/Clientes/Modificar/{ClienteId:int}"
+﻿@page "/Tickets/Modificar/{TicketId:int}"
 
-@inject ClienteService clienteservice
-@inject TecnicoService tecnicoservice
+@inject TicketService ticketService
+@inject ClienteService clienteService
+@inject TecnicoService tecnicoService
 @inject NavigationManager navigationManager
-@inject IToastService itoastService
+@inject IToastService toastService
 @rendermode InteractiveServer
 
-<PageTitle>Modificar Cliente</PageTitle>
+<PageTitle>Modificar Ticket</PageTitle>
 
-<EditForm Model="Cliente" OnValidSubmit="Actualizar">
+<EditForm Model="Ticket" OnValidSubmit="Actualizar">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -19,34 +20,52 @@
 
     <div class="container card shadow-lg mt-4 p-0">
         <header class="bg-primary text-white py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
-            <h4 class="m-0">Modificar Cliente</h4>
+            <h4 class="m-0">Modificar Ticket</h4>
         </header>
 
         <div class="card-body">
             <div class="mb-3">
-                <label class="form-label fw-bold">Cliente Id</label>
-                <InputNumber class="form-control" @bind-Value="Cliente.ClienteId" readonly />
+                <label class="form-label fw-bold">Ticket ID</label>
+                <InputNumber class="form-control" @bind-Value="Ticket.TicketId" readonly />
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">Nombre</label>
-                <InputText class="form-control" @bind-Value="Cliente.Nombres" />
+                <label class="form-label fw-bold">Fecha</label>
+                <InputDate class="form-control" @bind-Value="Ticket.Fecha" />
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">Dirección</label>
-                <InputText class="form-control" @bind-Value="Cliente.Direccion" />
+                <label class="form-label fw-bold">Prioridad</label>
+                <InputSelect class="form-control" @bind-Value="Ticket.Prioridad">
+                    <option disabled value="">-- Seleccione la prioridad --</option>
+                    <option>Alta</option>
+                    <option>Media</option>
+                    <option>Baja</option>
+                </InputSelect>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">RNC</label>
-                <InputText class="form-control" @bind-Value="Cliente.Rnc" />
+                <label class="form-label fw-bold">Cliente</label>
+                <InputSelect class="form-control" @bind-Value="Ticket.ClienteId">
+                    <option disabled value="">-- Seleccione un cliente --</option>
+                    @foreach (var cliente in Clientes)
+                    {
+                        <option value="@cliente.ClienteId">@cliente.Nombres</option>
+                    }
+                </InputSelect>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold">Límite de Crédito</label>
-                <InputNumber class="form-control" @bind-Value="Cliente.LimiteCredito" />
+                <label class="form-label fw-bold">Asunto</label>
+                <InputText class="form-control" @bind-Value="Ticket.Asunto" />
             </div>
-         
+            <div class="mb-3">
+                <label class="form-label fw-bold">Descripción</label>
+                <InputTextArea class="form-control" @bind-Value="Ticket.Descripcion" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Tiempo Invertido (horas)</label>
+                <InputNumber class="form-control" @bind-Value="Ticket.TiempoInvertido" />
+            </div>
             <div class="mb-3">
                 <label class="form-label fw-bold">Técnico Encargado</label>
-                <InputSelect class="form-control" @bind-Value="Cliente.TecnicoId">
+                <InputSelect class="form-control" @bind-Value="Ticket.TecnicoId">
                     <option disabled value="">-- Seleccione un técnico --</option>
                     @foreach (var tecnico in Tecnicos)
                     {
@@ -58,7 +77,7 @@
 
         <div class="card-footer text-center">
             <div class="btn-group" role="group">
-                <a href="/Clientes/Index" class="btn btn-outline-secondary">
+                <a href="/Tickets/Index" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Volver
                 </a>
                 <button type="submit" class="btn btn-outline-success">
@@ -80,22 +99,22 @@
 
                 <div class="card shadow-lg">
                     <div class="card-header text-center bg-danger text-white">
-                        <h5 class="card-title mb-0">Eliminar Cliente</h5>
+                        <h5 class="card-title mb-0">Eliminar Ticket</h5>
                     </div>
 
                     <div class="card-body">
                         <div class="text-center text-danger fs-5 fw-bold mb-3">
-                            ¿Está seguro de eliminar el cliente?
+                            ¿Está seguro de eliminar el ticket?
                         </div>
 
                         <div class="card shadow-sm mx-auto" style="width: 300px;">
                             <div class="card-header bg-light fw-bold text-dark">
-                                Datos del Cliente
+                                Datos del Ticket
                             </div>
                             <div class="card-body text-start">
-                                <p><strong>Cliente ID:</strong> @Cliente.ClienteId</p>
-                                <p><strong>Nombre:</strong> @Cliente.Nombres</p>
-                                <p><strong>RNC:</strong> @Cliente.Rnc</p>
+                                <p><strong>Ticket ID:</strong> @Ticket.TicketId</p>
+                                <p><strong>Asunto:</strong> @Ticket.Asunto</p>
+                                <p><strong>Cliente:</strong> @(Clientes.FirstOrDefault(c => c.ClienteId == Ticket.ClienteId)?.Nombres)</p>
                             </div>
                         </div>
                     </div>
@@ -119,29 +138,31 @@
 
 @code {
     [Parameter]
-    public int ClienteId { get; set; }
+    public int TicketId { get; set; }
 
-    private Cliente Cliente { get; set; } = new();
+    private Ticket Ticket { get; set; } = new();
+    private List<Cliente> Clientes { get; set; } = new();
     private List<Tecnicos> Tecnicos { get; set; } = new();
     private string Mensaje { get; set; } = string.Empty;
     private bool MostrarConfirmacion { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
-        Cliente = await clienteservice.Buscar(ClienteId);
-        Tecnicos = await tecnicoservice.Listar(t => true);
+        Ticket = await ticketService.Buscar(TicketId);
+        Clientes = await clienteService.Listar(c => true);
+        Tecnicos = await tecnicoService.Listar(t => true);
     }
 
     private async Task Actualizar()
     {
-        if (await clienteservice.Guardar(Cliente) != null)
+        if (await ticketService.Guardar(Ticket) != null)
         {
-            itoastService.ShowSuccess("Cliente actualizado correctamente.");
+            toastService.ShowSuccess("Ticket actualizado correctamente.");
         }
         else
         {
-            Mensaje = "Error al actualizar cliente";
-            itoastService.ShowError("Error al actualizar cliente.");
+            Mensaje = "Error al actualizar ticket";
+            toastService.ShowError("Error al actualizar ticket.");
         }
     }
 
@@ -149,16 +170,15 @@
     {
         MostrarConfirmacion = false;
 
-        var eliminado = await clienteservice.Eliminar(ClienteId);
+        var eliminado = await ticketService.Eliminar(TicketId);
         if (eliminado != null)
         {
-            itoastService.ShowSuccess("Cliente eliminado correctamente.");
-            navigationManager.NavigateTo("/Clientes/Index");
+            toastService.ShowSuccess("Ticket eliminado correctamente.");
+            navigationManager.NavigateTo("/Tickets/Index");
         }
         else
         {
-         
-            itoastService.ShowError("No se pudo eliminar el cliente.");
+            toastService.ShowError("No se pudo eliminar el ticket.");
         }
     }
 }

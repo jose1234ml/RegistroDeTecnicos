@@ -3,90 +3,145 @@
 @inject TecnicoService tecnicoservice
 @rendermode InteractiveServer
 
-<PageTitle>Registro</PageTitle>
+<PageTitle>Registro de Técnicos</PageTitle>
 
 <section class="container card shadow-lg rounded mt-4 p-0">
 
-	<header class="bg-light py-4 px-7 position-relative border-bottom">
-		<h4 class="m-0 position-absolute start-50 top-50 translate-middle text-center">Consulta de Técnicos</h4>
-		<a href="/Tecnico/Crear" class="btn btn-success position-absolute end-0 top-50 translate-middle-y me-3">
-			<i class="bi bi-plus-square me-1"></i> Crear
-		</a>
-	</header>
+    <header class="bg-light py-4 px-4 position-relative border-bottom">
+        <h4 class="m-0 position-absolute start-50 top-50 translate-middle text-center">Consulta de Técnicos</h4>
+        <a href="/Tecnico/Crear" class="btn btn-success position-absolute end-0 top-50 translate-middle-y me-3">
+            <i class="bi bi-plus-square me-1"></i> Crear
+        </a>
+    </header>
 
-	<div class="card-body">
+    <div class="card-body">
 
-		<div class="row mb-3">
-			<div class="col-md-3">
-				<label class="form-label fw-bold">Filtrar por</label>
-				<InputSelect class="form-select" @bind-Value="Filtro">
-					<option disabled selected value="">Seleccione una opción</option>
-					<option value="TecnicoId">Técnico Id</option>
-					<option value="Nombre">Nombre</option>
-				</InputSelect>
-			</div>
-			<div class="col-md-5">
-				<label class="form-label fw-bold">Búsqueda</label>
-				<div class="input-group">
-					<input class="form-control" @bind="ValorFiltro" placeholder="Buscador" />
-					<button class="btn btn-primary" @onclick="Buscar">
-						<i class="bi bi-search"></i>
-					</button>
-				</div>
-			</div>
-		</div>
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Filtrar por</label>
+                <InputSelect class="form-select" @bind-Value="Filtro">
+                    <option disabled selected value="">Seleccione una opción</option>
+                    <option value="TecnicoId">Técnico Id</option>
+                    <option value="Nombre">Nombre</option>
+                </InputSelect>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label fw-bold">Búsqueda</label>
+                <div class="input-group">
+                    <input class="form-control" @bind="ValorFiltro" placeholder="Buscador" />
+                    <button class="btn btn-primary" @onclick="Buscar">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
 
-		<div class="table-responsive">
-			<table class="table table-hover">
-				<thead>
-					<tr>
-						<th>Técnico Id</th>
-						<th>Nombre</th>
-						<th>Sueldo por hora</th>
-						<th>Editar</th>
-					</tr>
-				</thead>
-				<tbody>
-					@foreach (var tecnico in ListaTecnicos)
-					{
-						<tr>
-							<td>@tecnico.TecnicoId</td>
-							<td>@tecnico.NombreTecnico</td>
-							<td>@tecnico.SueldoHora.ToString("N2")</td>
-							<td>
-								<a href="/Tecnico/Modificar/@tecnico.TecnicoId" class="btn btn-outline-primary">
-									<i class="bi bi-pencil-square"></i>
-								</a>
-							</td>
-						</tr>
-					}
-				</tbody>
-			</table>
-		</div>
-	</div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Técnico Id</th>
+                        <th>Nombre</th>
+                        <th>Sueldo por hora</th>
+                        <th>Editar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (paginacionTecnicos?.Items?.Any() == true)
+                    {
+                        @foreach (var tecnico in paginacionTecnicos.Items)
+                        {
+                            <tr>
+                                <td>@tecnico.TecnicoId</td>
+                                <td>@tecnico.NombreTecnico</td>
+                                <td>@tecnico.SueldoHora.ToString("N2")</td>
+                                <td>
+                                    <a href="/Tecnico/Modificar/@tecnico.TecnicoId" class="btn btn-outline-primary">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center">No hay técnicos registrados o no se encontraron resultados.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-	<footer class="bg-light py-3 border-top"></footer>
+    <footer class="bg-light py-3 border-top">
+        @if (paginacionTecnicos != null)
+        {
+            <div class="d-flex justify-content-center mt-4">
+                <button class="btn btn-outline-primary" @onclick="() => CambiarPagina(paginacionTecnicos.PaginaActual - 1)" disabled="@(!paginacionTecnicos.TienePaginaAnterior)">
+                    Anterior
+                </button>
+
+                <span class="mx-3"> Página @paginacionTecnicos.PaginaActual de @paginacionTecnicos.TotalPaginas </span>
+
+                <button class="btn btn-outline-primary" @onclick="() => CambiarPagina(paginacionTecnicos.PaginaActual + 1)" disabled="@(!paginacionTecnicos.TienePaginaSiguiente)">
+                    Siguiente
+                </button>
+            </div>
+        }
+    </footer>
 </section>
 
 @code {
-	public List<Tecnicos> ListaTecnicos { get; set; } = new List<Tecnicos>();
-	public string Filtro { get; set; } = string.Empty;
-	public string ValorFiltro { get; set; } = string.Empty;
+    private Paginacion<Tecnicos>? paginacionTecnicos; 
+    private List<Tecnicos> todosLosTecnicos { get; set; } = new List<Tecnicos>(); 
 
-	protected override async Task OnInitializedAsync()
-	{
-		ListaTecnicos = await tecnicoservice.Listar(t => t.TecnicoId > 0);
-	}
+    public string Filtro { get; set; } = string.Empty;
+    public string ValorFiltro { get; set; } = string.Empty;
 
-	private async Task Buscar()
-	{
-		if (Filtro == "TecnicoId" && int.TryParse(ValorFiltro, out var tecnicoId))
-		{
-			ListaTecnicos = await tecnicoservice.Listar(t => t.TecnicoId == tecnicoId);
-		}
-		else if (Filtro == "Nombre" && !string.IsNullOrWhiteSpace(ValorFiltro))
-		{
-			ListaTecnicos = await tecnicoservice.Listar(t => t.NombreTecnico.ToLower().Contains(ValorFiltro.ToLower()));
-		}
-	}
+    private int PaginaActual = 1; 
+    private const int ElementosPorPagina = 7; 
+
+    protected override async Task OnInitializedAsync()
+    {
+        todosLosTecnicos = await tecnicoservice.Listar(t => true);
+        AplicarPaginacion();
+    }
+
+    private async Task Buscar()
+    {
+        todosLosTecnicos = await tecnicoservice.Listar(t => true);
+
+        List<Tecnicos> resultadosFiltrados = new List<Tecnicos>(todosLosTecnicos);
+
+        if (!string.IsNullOrWhiteSpace(Filtro) && !string.IsNullOrWhiteSpace(ValorFiltro))
+        {
+            if (Filtro == "TecnicoId" && int.TryParse(ValorFiltro, out var tecnicoId))
+            {
+                resultadosFiltrados = resultadosFiltrados.Where(t => t.TecnicoId == tecnicoId).ToList();
+            }
+            else if (Filtro == "Nombre")
+            {
+                resultadosFiltrados = resultadosFiltrados.Where(t => t.NombreTecnico.ToLower().Contains(ValorFiltro.ToLower())).ToList();
+            }
+        }
+
+        todosLosTecnicos = resultadosFiltrados; 
+        PaginaActual = 1; 
+        AplicarPaginacion();
+    }
+
+    private void AplicarPaginacion()
+    {
+        paginacionTecnicos = new Paginacion<Tecnicos>(todosLosTecnicos, PaginaActual, ElementosPorPagina);
+    }
+
+    private void CambiarPagina(int nuevaPagina)
+    {
+        if (paginacionTecnicos != null && nuevaPagina >= 1 && nuevaPagina <= paginacionTecnicos.TotalPaginas)
+        {
+            PaginaActual = nuevaPagina;
+            AplicarPaginacion();
+        }
+    }
 }

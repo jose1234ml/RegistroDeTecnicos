@@ -3,7 +3,8 @@
 @inject ClienteService clienteservice
 @inject TecnicoService tecnicoservice
 @rendermode InteractiveServer
-
+@inject IToastService itoastServices
+ 
 <PageTitle>Crear Cliente</PageTitle>
 
 <Toast Mensaje="@MensajeToast" Tipo="@TipoToast" Visible="@ToastVisible" OnClose="CerrarToast" />
@@ -67,12 +68,7 @@
                         }
                     </InputSelect>
                     <ValidationMessage For="(() => Cliente.TecnicoId)" />
-                }
-                else
-                {
-                    <div class="alert alert-warning">
-                        No hay técnicos registrados. No se puede guardar el cliente.
-                    </div>
+                
                 }
 
             </div>
@@ -139,12 +135,12 @@
         var guardado = await clienteservice.Guardar(Cliente);
         if (guardado != null)
         {
-            MostrarToast("Cliente guardado correctamente", "success");
+            itoastServices.ShowSuccess("Cliente guardado correctamente" );
             Nuevo();
         }
         else
         {
-            MostrarToast("Error al guardar el cliente", "danger");
+            itoastServices.ShowError("Error al guardar el cliente");
         }
     }
 

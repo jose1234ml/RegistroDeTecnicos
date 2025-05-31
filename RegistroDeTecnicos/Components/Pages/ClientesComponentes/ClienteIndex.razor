@@ -6,7 +6,6 @@
 <PageTitle>Clientes</PageTitle>
 
 <section class="container card shadow-lg rounded mt-4 p-0">
-
     <header class="bg-light py-4 px-4 position-relative border-bottom">
         <h4 class="m-0 position-absolute start-50 top-50 translate-middle text-center">Listado de Clientes</h4>
         <a href="/Clientes/Crear" class="btn btn-success position-absolute end-0 top-50 translate-middle-y me-3">
@@ -15,17 +14,17 @@
     </header>
 
     <div class="card-body">
-
         <div class="row mb-3">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label fw-bold">Filtrar por</label>
                 <InputSelect class="form-select" @bind-Value="Filtro">
                     <option disabled selected value="">Seleccione una opción</option>
                     <option value="ClienteId">Cliente Id</option>
-                     <option value="Rnc">RNC</option>
+                    <option value="Rnc">RNC</option>
                 </InputSelect>
             </div>
-            <div class="col-md-5">
+
+            <div class="col-md-3">
                 <label class="form-label fw-bold">Búsqueda</label>
                 <div class="input-group">
                     <input class="form-control" @bind="ValorFiltro" placeholder="Buscador" />
@@ -33,6 +32,16 @@
                         <i class="bi bi-search"></i>
                     </button>
                 </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Desde</label>
+                <InputDate class="form-control" @bind-Value="FechaDesde" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Hasta</label>
+                <InputDate class="form-control" @bind-Value="FechaHasta" />
             </div>
         </div>
 
@@ -80,6 +89,8 @@
     private List<Cliente> ListaClientes { get; set; } = new();
     private string Filtro { get; set; } = string.Empty;
     private string ValorFiltro { get; set; } = string.Empty;
+    private DateTime? FechaDesde { get; set; }
+    private DateTime? FechaHasta { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -88,21 +99,33 @@
 
     private async Task Buscar()
     {
+        var resultado = await clienteservice.ListarConTecnico();
+
         if (Filtro == "ClienteId" && int.TryParse(ValorFiltro, out var clienteId))
         {
-            ListaClientes = await clienteservice.ListarConTecnico(c => c.ClienteId == clienteId);
-        }
-        else if (Filtro == "Nombre" && !string.IsNullOrWhiteSpace(ValorFiltro))
-        {
-            ListaClientes = await clienteservice.ListarConTecnico(c => c.Nombres.ToLower().Contains(ValorFiltro.ToLower()));
+            resultado = resultado.Where(c => c.ClienteId == clienteId).ToList();
         }
         else if (Filtro == "Rnc" && !string.IsNullOrWhiteSpace(ValorFiltro))
         {
-            ListaClientes = await clienteservice.ListarConTecnico(c => c.Rnc.ToLower().Contains(ValorFiltro.ToLower()));
+            resultado = resultado.Where(c => c.Rnc != null && c.Rnc.ToLower().Contains(ValorFiltro.ToLower())).ToList();
         }
-        else
+
+        if (FechaDesde.HasValue && FechaHasta.HasValue)
         {
-            ListaClientes = await clienteservice.ListarConTecnico();
+            resultado = resultado.Where(c =>
+                c.FechaIngreso.Date >= FechaDesde.Value.Date &&
+                c.FechaIngreso.Date <= FechaHasta.Value.Date
+            ).ToList();
         }
+        else if (FechaDesde.HasValue)
+        {
+            resultado = resultado.Where(c => c.FechaIngreso.Date >= FechaDesde.Value.Date).ToList();
+        }
+        else if (FechaHasta.HasValue)
+        {
+            resultado = resultado.Where(c => c.FechaIngreso.Date <= FechaHasta.Value.Date).ToList();
+        }
+
+        ListaClientes = resultado;
     }
 }
