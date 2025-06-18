@@ -16,6 +16,7 @@ builder.Services.AddBlazoredToast();
 builder.Services.AddScoped<TecnicoService>();
 builder.Services.AddScoped<ClienteService>();
 builder.Services.AddScoped<TicketService>();
+builder.Services.AddSingleton<SistemaService>();
 
 var app = builder.Build();
 

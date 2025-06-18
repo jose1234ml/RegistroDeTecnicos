@@ -1,0 +1,148 @@
+﻿@page "/Sistema/Modificar/{SistemaId:int}"
+
+@inject SistemaService sistemaService
+@inject NavigationManager navigationManager
+@inject IToastService itoastService
+@rendermode InteractiveServer
+
+<PageTitle>Modificar Sistema</PageTitle>
+
+<EditForm Model="Sistema" OnValidSubmit="Actualizar">
+    <DataAnnotationsValidator />
+
+    @if (!string.IsNullOrEmpty(Mensaje))
+    {
+        <div class="alert alert-info">@Mensaje</div>
+    }
+
+    <div class="container card shadow-lg mt-4 p-0">
+        <header class="bg-primary text-white py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
+            <h4 class="m-0">Modificar Sistema</h4>
+        </header>
+
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Sistema Id</label>
+                <InputNumber class="form-control" @bind-Value="Sistema.SistemaId" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Descripción</label>
+                <InputText class="form-control" @bind-Value="Sistema.Descripcion" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Complejidad</label>
+                <InputSelect class="form-select" @bind-Value="Sistema.Complejidad">
+                    <option value="0" disabled>Seleccione la complejidad</option>
+                    <option value="1">Baja</option>
+                    <option value="2">Media</option>
+                    <option value="3">Alta</option>
+                </InputSelect>
+            </div>
+        </div>
+
+        <div class="card-footer text-center">
+            <div class="btn-group" role="group">
+                <a href="/Sistema/Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <button type="submit" class="btn btn-outline-success">
+                    <i class="bi bi-floppy"></i> Guardar
+                </button>
+                <button type="button" class="btn btn-outline-danger" @onclick="() => MostrarConfirmacion = true">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@if (MostrarConfirmacion)
+{
+    <div class="modal fade show d-block bg-dark bg-opacity-50" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+
+                <div class="card shadow-lg">
+                    <div class="card-header text-center bg-danger text-white">
+                        <h5 class="card-title mb-0">Eliminar Sistema</h5>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="text-center text-danger fs-5 fw-bold mb-3">
+                            ¿Está seguro de eliminar este sistema?
+                        </div>
+
+                        <div class="card shadow-sm mx-auto" style="width: 300px;">
+                            <div class="card-header bg-light fw-bold text-dark">
+                                Datos del Sistema
+                            </div>
+                            <div class="card-body text-start">
+                                <p><strong>ID:</strong> @Sistema.SistemaId</p>
+                                <p><strong>Descripción:</strong> @Sistema.Descripcion</p>
+                                <p><strong>Complejidad:</strong> @Sistema.Complejidad</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer text-center">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-outline-secondary" @onclick="() => MostrarConfirmacion = false">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </button>
+                            <button class="btn btn-outline-danger" @onclick="ConfirmarEliminar">
+                                <i class="bi bi-trash"></i> Confirmar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int SistemaId { get; set; }
+
+    private Sistema Sistema { get; set; } = new();
+    private string Mensaje { get; set; } = string.Empty;
+    private bool MostrarConfirmacion { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Sistema = await sistemaService.Buscar(SistemaId);
+    }
+
+    private async Task Actualizar()
+    {
+        if (await sistemaService.Actualizar(Sistema))
+        {
+            Mensaje = "Sistema actualizado correctamente";
+            itoastService.ShowSuccess("Sistema actualizado correctamente.");
+        }
+        else
+        {
+            Mensaje = "Error al actualizar sistema";
+            itoastService.ShowError("Error al actualizar sistema.");
+        }
+    }
+
+    private async Task ConfirmarEliminar()
+    {
+        MostrarConfirmacion = false;
+
+        if (await sistemaService.Eliminar(Sistema.SistemaId))
+        {
+            itoastService.ShowSuccess("Sistema eliminado correctamente.");
+            navigationManager.NavigateTo("/Sistema/Index");
+        }
+        else
+        {
+            Mensaje = "No se pudo eliminar el sistema";
+            itoastService.ShowError("No se pudo eliminar el sistema.");
+        }
+    }
+}

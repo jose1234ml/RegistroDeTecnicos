@@ -1,0 +1,102 @@
+﻿@page "/Sistema/Crear"
+
+@inject SistemaService sistemaService
+@rendermode InteractiveServer
+
+<PageTitle>Crear Sistema</PageTitle>
+
+<EditForm Model="Sistema" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+
+    @if (!string.IsNullOrEmpty(ErrorGuardar))
+    {
+        <div class="alert alert-danger">@ErrorGuardar</div>
+    }
+    @if (!string.IsNullOrEmpty(GuardarExito))
+    {
+        <div class="alert alert-success">@GuardarExito</div>
+    }
+
+    <div class="container card shadow-lg mt-4 p-0">
+        <header class="bg-primary text-white py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
+            <h4 class="m-0">Registro de Sistema</h4>
+        </header>
+
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Sistema Id</label>
+                <InputNumber class="form-control" @bind-Value="Sistema.SistemaId" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Descripción</label>
+                <InputText class="form-control" @bind-Value="Sistema.Descripcion" />
+                <ValidationMessage For="(() => Sistema.Descripcion)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Complejidad</label>
+                <InputSelect class="form-select" @bind-Value="Sistema.Complejidad">
+                    <option value="0" disabled>Seleccione la complejidad</option>
+                    <option value="1">Baja</option>
+                    <option value="2">Media</option>
+                    <option value="3">Alta</option>
+                </InputSelect>
+                <ValidationMessage For="(() => Sistema.Complejidad)" />
+            </div>
+        </div>
+
+        <div class="card-footer text-center">
+            <div class="btn-group" role="group">
+                <a href="/Sistema/Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <button type="submit" class="btn btn-outline-success">
+                    <i class="bi bi-floppy"></i> Guardar
+                </button>
+                <button type="button" class="btn btn-outline-primary" @onclick="Nuevo">
+                    <i class="bi bi-arrow-clockwise"></i> Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private Sistema Sistema { get; set; } = new Sistema();
+    private string GuardarExito { get; set; } = string.Empty;
+    private string ErrorGuardar { get; set; } = string.Empty;
+
+    public void Nuevo()
+    {
+        this.Sistema = new Sistema();
+    }
+
+    private async Task<bool> Validar()
+    {
+        ErrorGuardar = string.Empty;
+        return !await sistemaService.ExisteDescripcion(Sistema.Descripcion);
+    }
+
+    public async Task Guardar()
+    {
+        ErrorGuardar = GuardarExito = string.Empty;
+
+        if (!await Validar())
+        {
+            ErrorGuardar = "Ya existe un sistema con esa descripción.";
+            return;
+        }
+
+        var guardo = await sistemaService.Guardar(this.Sistema);
+        if (guardo != null)
+        {
+            GuardarExito = "Sistema guardado correctamente";
+            Nuevo();
+        }
+        else
+        {
+            ErrorGuardar = "Error al guardar el sistema";
+        }
+    }
+}
