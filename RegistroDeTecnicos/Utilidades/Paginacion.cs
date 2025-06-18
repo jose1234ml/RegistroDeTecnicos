@@ -18,12 +18,8 @@
             .Take(ElementosPorPagina)
             .ToList();
     }
-
-    // Propiedades para verificar si hay páginas anteriores o siguientes
     public bool TienePaginaAnterior => PaginaActual > 1;
     public bool TienePaginaSiguiente => PaginaActual < TotalPaginas;
-
-    // Métodos para avanzar o retroceder en las páginas
     public void IrPaginaSiguiente()
     {
         if (TienePaginaSiguiente)
@@ -31,7 +27,6 @@
             PaginaActual++;
         }
     }
-
     public void IrPaginaAnterior()
     {
         if (TienePaginaAnterior)
@@ -40,7 +35,6 @@
         }
     }
 
-    // Constructor vacío
     public Paginacion()
     {
         Items = new List<T>();
