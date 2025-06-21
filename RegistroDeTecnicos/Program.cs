@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using RegistroDeTecnicos.Components;
 using RegistroDeTecnicos.Components.DAL;
 using RegistroDeTecnicos.Components.Service;
+using RegistroDeTecnicos.Components.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +17,9 @@ builder.Services.AddBlazoredToast();
 builder.Services.AddScoped<TecnicoService>();
 builder.Services.AddScoped<ClienteService>();
 builder.Services.AddScoped<TicketService>();
-builder.Services.AddSingleton<SistemaService>();
+builder.Services.AddScoped<SistemaService>();
+
+builder.Services.AddScoped<VentaService>(); // Cambiar a Scoped
 
 var app = builder.Build();
 

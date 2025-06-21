@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RegistroDeTecnicos.Components.DAL;
 
@@ -10,9 +11,11 @@ using RegistroDeTecnicos.Components.DAL;
 namespace RegistroDeTecnicos.Migrations
 {
     [DbContext(typeof(Contexto))]
-    partial class ContextoModelSnapshot : ModelSnapshot
+    [Migration("20250619011643_DataBase4")]
+    partial class DataBase4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.5");
@@ -55,6 +58,32 @@ namespace RegistroDeTecnicos.Migrations
                     b.HasIndex("TecnicoId");
 
                     b.ToTable("Clientes");
+                });
+
+            modelBuilder.Entity("RegistroDeTecnicos.Components.Model.Sistema", b =>
+                {
+                    b.Property<int>("SistemaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Complejidad")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("SistemaId");
+
+                    b.ToTable("Sistemas");
                 });
 
             modelBuilder.Entity("RegistroDeTecnicos.Components.Model.Tecnicos", b =>
@@ -138,7 +167,7 @@ namespace RegistroDeTecnicos.Migrations
 
             modelBuilder.Entity("RegistroDeTecnicos.Components.Model.VentaDetalle", b =>
                 {
-                    b.Property<int>("VentaDetalleId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -154,40 +183,13 @@ namespace RegistroDeTecnicos.Migrations
                     b.Property<int>("VentaId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("VentaDetalleId");
+                    b.HasKey("Id");
 
                     b.HasIndex("SistemaId");
 
                     b.HasIndex("VentaId");
 
-                    b.ToTable("VentaDetalles");
-                });
-
-            modelBuilder.Entity("Sistema", b =>
-                {
-                    b.Property<int>("SistemaId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Complejidad")
-                        .IsRequired()
-                        .HasMaxLength(5)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Costo")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Descripcion")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Existencia")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("SistemaId");
-
-                    b.ToTable("Sistemas");
+                    b.ToTable("VentasDetalle");
                 });
 
             modelBuilder.Entity("RegistroDeTecnicos.Components.Model.Cliente", b =>
@@ -195,7 +197,8 @@ namespace RegistroDeTecnicos.Migrations
                     b.HasOne("RegistroDeTecnicos.Components.Model.Tecnicos", "Tecnico")
                         .WithMany()
                         .HasForeignKey("TecnicoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Tecnico");
                 });
@@ -232,21 +235,19 @@ namespace RegistroDeTecnicos.Migrations
 
             modelBuilder.Entity("RegistroDeTecnicos.Components.Model.VentaDetalle", b =>
                 {
-                    b.HasOne("Sistema", "Sistema")
+                    b.HasOne("RegistroDeTecnicos.Components.Model.Sistema", "Sistema")
                         .WithMany()
                         .HasForeignKey("SistemaId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RegistroDeTecnicos.Components.Model.Venta", "Venta")
+                    b.HasOne("RegistroDeTecnicos.Components.Model.Venta", null)
                         .WithMany("Detalles")
                         .HasForeignKey("VentaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Sistema");
-
-                    b.Navigation("Venta");
                 });
 
             modelBuilder.Entity("RegistroDeTecnicos.Components.Model.Venta", b =>
