@@ -1,0 +1,173 @@
+﻿@page "/Ventas/Index"
+@inject Contexto _context
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Historial de Ventas</PageTitle>
+
+<section class="container card shadow-lg rounded mt-4 p-0">
+    <header class="bg-light py-4 px-4 position-relative border-bottom">
+        <h4 class="m-0 position-absolute start-50 top-50 translate-middle text-center">Historial de Ventas</h4>
+        <a href="/Ventas/Crear" class="btn btn-success position-absolute end-0 top-50 translate-middle-y me-3">
+            <i class="bi bi-plus-square me-1"></i> Crear
+        </a>
+    </header>
+
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Filtrar por</label>
+                <InputSelect class="form-select" @bind-Value="Filtro">
+                    <option disabled selected value="">Seleccione una opción</option>
+                    <option value="Cliente">Cliente</option>
+                    <option value="Fecha">Fecha</option>
+                </InputSelect>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Valor</label>
+                <div class="input-group">
+                    <input class="form-control" @bind="ValorFiltro" placeholder="Valor del filtro" />
+                    <button class="btn btn-primary" @onclick="Buscar">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Desde</label>
+                <InputDate class="form-control" @bind-Value="FechaDesde" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Hasta</label>
+                <InputDate class="form-control" @bind-Value="FechaHasta" />
+            </div>
+        </div>
+
+        @if (Ventas == null)
+        {
+            <p><em>Cargando ventas...</em></p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Venta Id</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Sistema</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                            <th>Subtotal</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var venta in PaginacionVentas.Items)
+                        {
+                            foreach (var detalle in venta.Detalles)
+                            {
+                                <tr>
+                                    <td>@venta.VentaId</td>
+                                    <td>@venta.Fecha.ToShortDateString()</td>
+                                    <td>@venta.Cliente?.Nombres</td>
+                                    <td>@detalle.Sistema?.Descripcion</td>
+                                    <td>@detalle.Cantidad</td>
+                                    <td>@detalle.Precio.ToString("N2")</td>
+                                    <td>@(detalle.Cantidad* detalle.Precio)</td>
+                                    <td>
+                                        <a href="/Ventas/Modificar/@venta.VentaId" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <footer class="bg-light py-3 border-top">
+        @if (PaginacionVentas != null)
+        {
+            <div class="d-flex justify-content-center mt-4">
+                <button class="btn btn-outline-primary" @onclick="() => CambiarPagina(PaginacionVentas.PaginaActual - 1)" disabled="@(!PaginacionVentas.TienePaginaAnterior)">
+                    Anterior
+                </button>
+                <span class="mx-3"> Página @PaginacionVentas.PaginaActual de @PaginacionVentas.TotalPaginas </span>
+                <button class="btn btn-outline-primary" @onclick="() => CambiarPagina(PaginacionVentas.PaginaActual + 1)" disabled="@(!PaginacionVentas.TienePaginaSiguiente)">
+                    Siguiente
+                </button>
+            </div>
+        }
+    </footer>
+</section>
+
+@code {
+    private List<Venta>? TodasLasVentas;
+    private List<Venta>? Ventas;
+    private Paginacion<Venta> PaginacionVentas;
+
+    public string Filtro { get; set; } = string.Empty;
+    public string ValorFiltro { get; set; } = string.Empty;
+    private DateTime? FechaDesde { get; set; }
+    private DateTime? FechaHasta { get; set; }
+
+    private int PaginaActual = 1;
+    private const int ElementosPorPagina = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        TodasLasVentas = await _context.Ventas
+            .Include(v => v.Cliente)
+            .Include(v => v.Detalles)
+                .ThenInclude(d => d.Sistema)
+            .ToListAsync();
+
+        Ventas = new List<Venta>(TodasLasVentas);
+        AplicarPaginacion();
+    }
+
+    private void Buscar()
+    {
+        Ventas = new List<Venta>(TodasLasVentas);
+
+        if (FechaDesde.HasValue)
+            Ventas = Ventas?.Where(v => v.Fecha.Date >= FechaDesde.Value.Date).ToList();
+
+        if (FechaHasta.HasValue)
+            Ventas = Ventas?.Where(v => v.Fecha.Date <= FechaHasta.Value.Date).ToList();
+
+        if (!string.IsNullOrWhiteSpace(Filtro) && !string.IsNullOrWhiteSpace(ValorFiltro))
+        {
+            if (Filtro == "Cliente")
+            {
+                Ventas = Ventas?.Where(v => v.Cliente?.Nombres?.ToLower().Contains(ValorFiltro.ToLower()) == true).ToList();
+            }
+            else if (Filtro == "Fecha" && DateTime.TryParse(ValorFiltro, out var fechaFiltro))
+            {
+                Ventas = Ventas?.Where(v => v.Fecha.Date == fechaFiltro.Date).ToList();
+            }
+        }
+
+        PaginaActual = 1;
+        AplicarPaginacion();
+    }
+
+    private void AplicarPaginacion()
+    {
+        PaginacionVentas = new Paginacion<Venta>(Ventas, PaginaActual, ElementosPorPagina);
+    }
+
+    private void CambiarPagina(int nuevaPagina)
+    {
+        if (PaginacionVentas != null && nuevaPagina >= 1 && nuevaPagina <= PaginacionVentas.TotalPaginas)
+        {
+            PaginaActual = nuevaPagina;
+            AplicarPaginacion();
+        }
+    }
+}
