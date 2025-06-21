@@ -1,0 +1,185 @@
+﻿@page "/Ventas/Modificar/{VentaId:int}"
+@using RegistroDeTecnicos.Components.Services
+
+@inject VentaService ventaService
+@inject ClienteService clienteService
+@inject SistemaService sistemaService
+@inject NavigationManager navigationManager
+@inject IToastService toastService
+@rendermode InteractiveServer
+
+<PageTitle>Modificar Venta</PageTitle>
+
+<EditForm Model="venta" OnValidSubmit="Actualizar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    @if (!string.IsNullOrEmpty(Mensaje))
+    {
+        <div class="alert alert-info">@Mensaje</div>
+    }
+
+    <div class="container card shadow-lg mt-4 p-0">
+        <header class="bg-primary text-white py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
+            <h4 class="m-0">Modificar Venta</h4>
+        </header>
+
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Venta ID</label>
+                <InputNumber class="form-control" @bind-Value="venta.VentaId" readonly />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Fecha</label>
+                <InputDate class="form-control" @bind-Value="venta.Fecha" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Cliente</label>
+                <InputSelect class="form-control" @bind-Value="venta.ClienteId">
+                    <option disabled value="">-- Seleccione un cliente --</option>
+                    @foreach (var cliente in Clientes)
+                    {
+                        <option value="@cliente.ClienteId">@cliente.Nombres</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <hr />
+
+            <h5>Detalles de Venta</h5>
+
+            @foreach (var detalle in venta.Detalles)
+            {
+                <div class="row mb-3">
+                    <div class="col">
+                        <label class="form-label">Sistema</label>
+                        <InputSelect class="form-control" @bind-Value="detalle.SistemaId">
+                            <option value="">-- Seleccione un sistema --</option>
+                            @foreach (var sistema in Sistemas)
+                            {
+                                <option value="@sistema.SistemaId">@sistema.Descripcion</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Cantidad</label>
+                        <InputNumber class="form-control" @bind-Value="detalle.Cantidad" />
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Precio</label>
+                        <InputNumber class="form-control" @bind-Value="detalle.Precio" />
+                    </div>
+                </div>
+            }
+
+           
+        </div>
+
+        <div class="card-footer text-center">
+            <div class="btn-group" role="group">
+                <a href="/Ventas/Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <button type="submit" class="btn btn-outline-success">
+                    <i class="bi bi-floppy"></i> Guardar
+                </button>
+                <button type="button" class="btn btn-outline-danger" @onclick="() => MostrarConfirmacion = true">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@if (MostrarConfirmacion)
+{
+    <div class="modal fade show d-block bg-dark bg-opacity-50" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+
+                <div class="card shadow-lg">
+                    <div class="card-header text-center bg-danger text-white">
+                        <h5 class="card-title mb-0">Eliminar Venta</h5>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="text-center text-danger fs-5 fw-bold mb-3">
+                            ¿Está seguro de eliminar esta venta?
+                        </div>
+
+                        <div class="card shadow-sm mx-auto" style="width: 300px;">
+                            <div class="card-header bg-light fw-bold text-dark">
+                                Datos de la Venta
+                            </div>
+                            <div class="card-body text-start">
+                                <p><strong>Venta ID:</strong> @venta.VentaId</p>
+                                <p><strong>Cliente:</strong> @(Clientes.FirstOrDefault(c => c.ClienteId == venta.ClienteId)?.Nombres)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer text-center">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-outline-secondary" @onclick="() => MostrarConfirmacion = false">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </button>
+                            <button class="btn btn-outline-danger" @onclick="ConfirmarEliminar">
+                                <i class="bi bi-trash"></i> Confirmar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int VentaId { get; set; }
+
+    private Venta venta { get; set; } = new();
+    private List<Cliente> Clientes { get; set; } = new();
+    private List<Sistema> Sistemas { get; set; } = new();
+    private bool MostrarConfirmacion { get; set; } = false;
+    private string Mensaje { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        venta = await ventaService.BuscarVentaConDetalles(VentaId);
+        Clientes = await clienteService.Listar(c => true);
+        Sistemas = await sistemaService.Listar(s => true);
+    }
+
+    private async Task Actualizar()
+    {
+        if (await ventaService.ActualizarVentaAsync(venta))
+        {
+            toastService.ShowSuccess("Venta actualizada correctamente.");
+            navigationManager.NavigateTo("/Ventas/Index");
+        }
+        else
+        {
+            Mensaje = "Error al actualizar la venta.";
+            toastService.ShowError("Error al actualizar la venta.");
+        }
+    }
+
+    private async Task ConfirmarEliminar()
+    {
+        MostrarConfirmacion = false;
+
+        if (await ventaService.Eliminar(venta.VentaId))
+        {
+            toastService.ShowSuccess("Venta eliminada correctamente.");
+            navigationManager.NavigateTo("/Ventas/Index");
+        }
+        else
+        {
+            toastService.ShowError("No se pudo eliminar la venta.");
+        }
+    }
+
+    
+}

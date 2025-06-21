@@ -1,0 +1,332 @@
+﻿@page "/Ventas/Crear"
+@using RegistroDeTecnicos.Components.Model
+@using RegistroDeTecnicos.Components.Services
+@inject VentaService ventaService
+@inject ClienteService clienteService
+@inject SistemaService sistemaService
+@inject IToastService toastService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Crear Venta</PageTitle>
+
+<EditForm Model="nuevaVenta" OnValidSubmit="Guardar" @key="nuevaVenta">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container card shadow-lg mt-4 p-0">
+        <header class="bg-primary text-white py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
+            <h4 class="m-0">Registro de Venta</h4>
+        </header>
+
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Fecha</label>
+                <InputDate class="form-control" @bind-Value="nuevaVenta.Fecha" required />
+                <ValidationMessage For="(() => nuevaVenta.Fecha)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Cliente</label>
+                <InputSelect class="form-select" @bind-Value="nuevaVenta.ClienteId" required @onchange="(() => StateHasChanged())">
+                    <option value="0">Seleccione un cliente</option>
+                    @foreach (var cliente in ListaClientes)
+                    {
+                        <option value="@cliente.ClienteId">@cliente.Nombres</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="(() => nuevaVenta.ClienteId)" />
+            </div>
+
+            <hr />
+
+            <div class="border border-success p-3 mb-4 rounded">
+                <h5 class="fw-bold text-success mb-3">Agregar Nuevo Detalle</h5>
+                <div class="row g-3 align-items-end mb-3">
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold">Sistema</label>
+                        <InputSelect class="form-select" @bind-Value="SistemaId" @onchange="OnSistemaSelected">
+                            <option value="0">Seleccione un sistema</option>
+                            @foreach (var sistema in ListaSistemas)
+                            {
+                                <option value="@sistema.SistemaId">@sistema.Descripcion (Disp: @sistema.Existencia)</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Cantidad</label>
+                        <InputNumber class="form-control" @bind-Value="Cantidad" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Precio</label>
+                        <InputNumber class="form-control" @bind-Value="Precio" />
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="button" class="btn btn-primary w-100" @onclick="AgregarDetalleToList">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(MensajeErrorDetalle))
+                {
+                    <div class="alert alert-danger mt-2">@MensajeErrorDetalle</div>
+                }
+            </div>
+
+            <div class="mt-4">
+                <h5 class="fw-bold mb-3">Detalles Agregados (@DetallesTemp.Count)</h5>
+                @if (DetallesTemp.Any())
+                {
+                    @foreach (var detalle in DetallesTemp)
+                    {
+                        <div class="border border-info p-3 mb-2 rounded shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">Detalle #@detalle.Id</h6>
+                                <button type="button" class="btn btn-danger btn-sm" @onclick="() => EliminarDetalle(detalle.Id)">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </button>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label fw-bold small">Sistema:</label>
+                                    <p class="form-control-plaintext">@ObtenerDescripcionSistema(detalle.SistemaId)</p>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <label class="form-label fw-bold small">Cantidad:</label>
+                                    <p class="form-control-plaintext">@detalle.Cantidad</p>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <label class="form-label fw-bold small">Precio:</label>
+                                    <p class="form-control-plaintext">@detalle.Precio.ToString("N2")</p>
+                                </div>
+                                <div class="col-md-12 text-end">
+                                    <label class="form-label fw-bold small">Subtotal:</label>
+                                    <p class="form-control-plaintext d-inline">@detalle.Subtotal.ToString("N2")</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-info text-center">No hay detalles agregados aún.</div>
+                }
+
+                <div class="text-end mt-3">
+                    <h5 class="text-primary">Total Venta: @Monto.ToString("N2")</h5>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="card-footer text-center">
+            <div class="btn-group" role="group">
+                <a href="/Ventas/Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <button type="submit" class="btn btn-outline-success" disabled="@(!PuedeGuardar)">
+                    <i class="bi bi-floppy"></i> Guardar
+                </button>
+                <button type="button" class="btn btn-outline-primary" @onclick="Nuevo">
+                    <i class="bi bi-arrow-clockwise"></i> Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private Venta nuevaVenta = new Venta();
+    private List<Cliente> ListaClientes = new();
+    private List<Sistema> ListaSistemas = new();
+
+    private int SistemaId;
+    private int Cantidad;
+    private decimal Precio;
+    private string? MensajeErrorDetalle;
+    private List<DetalleVenta> DetallesTemp = new();
+    private int _nextDetalleId = 1;
+
+    private decimal Monto => DetallesTemp.Sum(d => d.Subtotal);
+    private bool PuedeGuardar => DetallesTemp.Count > 0 && nuevaVenta.ClienteId != 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListaClientes = await clienteService.Listar(c => true);
+        ListaSistemas = await sistemaService.Listar();
+        nuevaVenta.Fecha = DateTime.Today;
+    }
+
+    private string ObtenerDescripcionSistema(int sistemaId)
+    {
+        return ListaSistemas.FirstOrDefault(s => s.SistemaId == sistemaId)?.Descripcion ?? "Desconocido";
+    }
+
+    private async Task OnSistemaSelected(ChangeEventArgs e)
+    {
+        SistemaId = Convert.ToInt32(e.Value);
+        var sistema = ListaSistemas.FirstOrDefault(s => s.SistemaId == SistemaId);
+        if (sistema != null)
+        {
+            Precio = sistema.Costo; 
+            StateHasChanged(); 
+        }
+        else
+        {
+            Precio = 0;
+        }
+        MensajeErrorDetalle = null;
+    }
+
+    private async Task AgregarDetalleToList()
+    {
+        MensajeErrorDetalle = null;
+
+        if (SistemaId == 0)
+        {
+            MensajeErrorDetalle = "Por favor, seleccione un sistema.";
+        }
+        else if (Cantidad <= 0)
+        {
+            MensajeErrorDetalle = "La cantidad debe ser mayor que cero.";
+        }
+        else if (Precio <= 0)
+        {
+            MensajeErrorDetalle = "El precio debe ser mayor que cero.";
+        }
+
+        var sistemaSeleccionado = ListaSistemas.FirstOrDefault(s => s.SistemaId == SistemaId);
+        if (sistemaSeleccionado != null)
+        {
+            var cantidadActualEnDetalleTemp = DetallesTemp.FirstOrDefault(d => d.SistemaId == SistemaId)?.Cantidad ?? 0;
+
+            if (sistemaSeleccionado.Existencia < (Cantidad + cantidadActualEnDetalleTemp))
+            {
+                MensajeErrorDetalle = $"No hay suficiente existencia de '{sistemaSeleccionado.Descripcion}'. Disponible: {sistemaSeleccionado.Existencia}. Cantidad ya en lista para este sistema: {cantidadActualEnDetalleTemp}.";
+            }
+        }
+        else
+        {
+            MensajeErrorDetalle = "Sistema seleccionado no válido.";
+        }
+
+        if (!string.IsNullOrEmpty(MensajeErrorDetalle))
+        {
+            toastService.ShowError(MensajeErrorDetalle);
+            return;
+        }
+
+        var existente = DetallesTemp.FirstOrDefault(d => d.SistemaId == SistemaId);
+        if (existente != null)
+        {
+            if (sistemaSeleccionado.Existencia < (existente.Cantidad + Cantidad))
+            {
+                MensajeErrorDetalle = $"No puedes agregar más. La cantidad total para '{sistemaSeleccionado.Descripcion}' excedería la existencia. Disponible: {sistemaSeleccionado.Existencia}. Ya en lista: {existente.Cantidad}. Intentando agregar: {Cantidad}.";
+                toastService.ShowError(MensajeErrorDetalle);
+                return;
+            }
+            existente.Cantidad += Cantidad;
+            toastService.ShowInfo($"Cantidad de '{sistemaSeleccionado.Descripcion}' actualizada a {existente.Cantidad}.");
+        }
+        else
+        {
+            DetallesTemp.Add(new DetalleVenta
+            {
+                Id = _nextDetalleId++,
+                SistemaId = SistemaId,
+                Cantidad = Cantidad,
+                Precio = Precio
+            });
+            toastService.ShowSuccess("Detalle agregado correctamente.");
+        }
+
+        SistemaId = 0;
+        Cantidad = 0;
+        Precio = 0;
+
+        ListaSistemas = await sistemaService.Listar();
+        StateHasChanged();
+    }
+
+    private void EliminarDetalle(int id)
+    {
+        DetallesTemp.RemoveAll(d => d.Id == id);
+        toastService.ShowWarning("Detalle eliminado.");
+        StateHasChanged();
+    }
+
+    private async Task Guardar()
+    {
+        MensajeErrorDetalle = null;
+
+        if (nuevaVenta.ClienteId == 0)
+        {
+            toastService.ShowError("Debe seleccionar un cliente para la venta.");
+            return;
+        }
+
+        if (!DetallesTemp.Any())
+        {
+            toastService.ShowError("Debe agregar al menos un detalle a la venta.");
+            return;
+        }
+
+        foreach (var detalleTemp in DetallesTemp)
+        {
+            var sistemaEnStock = ListaSistemas.FirstOrDefault(s => s.SistemaId == detalleTemp.SistemaId);
+            if (sistemaEnStock == null || sistemaEnStock.Existencia < detalleTemp.Cantidad)
+            {
+                toastService.ShowError($"Error: No hay suficiente existencia de '{ObtenerDescripcionSistema(detalleTemp.SistemaId)}' para la cantidad solicitada ({detalleTemp.Cantidad}). Disponible: {(sistemaEnStock?.Existencia ?? 0)}.");
+                return;
+            }
+        }
+
+        nuevaVenta.Detalles = DetallesTemp.Select(d => new VentaDetalle
+        {
+            SistemaId = d.SistemaId,
+            Cantidad = d.Cantidad,
+            Precio = d.Precio
+        }).ToList();
+
+        nuevaVenta.Monto = Monto;
+
+        var exito = await ventaService.GuardarVentaAsync(nuevaVenta);
+
+        if (exito)
+        {
+            toastService.ShowSuccess("Venta guardada exitosamente y existencia actualizada.");
+            Nuevo();
+            Navigation.NavigateTo("/Ventas/Index");
+        }
+        else
+        {
+            toastService.ShowError("Error al guardar la venta. Verifique la consola para más detalles.");
+        }
+    }
+
+    private async void Nuevo()
+    {
+        nuevaVenta = new Venta { Fecha = DateTime.Today };
+        DetallesTemp.Clear();
+        SistemaId = 0;
+        Cantidad = 0;
+        Precio = 0;
+        _nextDetalleId = 1;
+        MensajeErrorDetalle = null;
+
+        ListaClientes = await clienteService.Listar(c => true);
+        ListaSistemas = await sistemaService.Listar();
+
+        StateHasChanged();
+    }
+
+    public class DetalleVenta
+    {
+        public int Id { get; set; }
+        public int SistemaId { get; set; }
+        public int Cantidad { get; set; }
+        public decimal Precio { get; set; }
+        public decimal Subtotal => Cantidad * Precio;
+    }
+}
