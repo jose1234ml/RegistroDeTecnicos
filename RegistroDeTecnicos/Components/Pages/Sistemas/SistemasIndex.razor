@@ -5,7 +5,6 @@
 <PageTitle>Consulta de Sistemas</PageTitle>
 
 <section class="container card shadow-lg rounded mt-4 p-0">
-
     <header class="bg-light py-4 px-4 position-relative border-bottom">
         <h4 class="m-0 position-absolute start-50 top-50 translate-middle text-center">Consulta de sistemas</h4>
         <a href="/Sistema/Crear" class="btn btn-success position-absolute end-0 top-50 translate-middle-y me-3">
@@ -14,7 +13,6 @@
     </header>
 
     <div class="card-body">
-
         <div class="row mb-3">
             <div class="col-md-3">
                 <label class="form-label fw-bold">Filtrar por</label>
@@ -36,6 +34,7 @@
                 </div>
             </div>
         </div>
+
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
@@ -43,6 +42,7 @@
                         <th>Sistema Id</th>
                         <th>Descripción</th>
                         <th>Complejidad</th>
+                        <th>Cantidad de Existencia</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -54,7 +54,8 @@
                             <tr>
                                 <td>@sistema.SistemaId</td>
                                 <td>@sistema.Descripcion</td>
-                                <td>@GetComplejidad(sistema.Complejidad)</td> 
+                                <td>@GetComplejidad(sistema.Complejidad)</td>
+                                <td>@sistema.Existencia</td>
                                 <td>
                                     <a href="/Sistema/Modificar/@sistema.SistemaId" class="btn btn-outline-primary">
                                         <i class="bi bi-pencil-square"></i>
@@ -66,7 +67,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="4" class="text-center">No hay sistemas registrados o no se encontraron resultados.</td>
+                            <td colspan="5" class="text-center">No hay sistemas registrados o no se encontraron resultados.</td>
                         </tr>
                     }
                 </tbody>
@@ -75,7 +76,7 @@
     </div>
 
     <footer class="bg-light py-3 border-top">
-        @if (paginacionSistemas != null)
+        @if (paginacionSistemas != null && paginacionSistemas.Items.Any())
         {
             <div class="d-flex justify-content-center mt-4">
                 <button class="btn btn-outline-primary" @onclick="() => CambiarPagina(paginacionSistemas.PaginaActual - 1)" disabled="@(!paginacionSistemas.TienePaginaAnterior)">
@@ -111,26 +112,28 @@
     private async Task Buscar()
     {
         todosLosSistemas = await sistemaService.ObtenerSistemas();
-
-        List<Sistema> resultadosFiltrados = new List<Sistema>(todosLosSistemas);
+        List<Sistema> resultadosFiltrados = new(todosLosSistemas);
 
         if (!string.IsNullOrWhiteSpace(Filtro) && !string.IsNullOrWhiteSpace(ValorFiltro))
         {
-            if (Filtro == "SistemaId" && int.TryParse(ValorFiltro, out var sistemaId))
+            switch (Filtro)
             {
-                resultadosFiltrados = resultadosFiltrados.Where(s => s.SistemaId == sistemaId).ToList();
-            }
-            else if (Filtro == "Descripcion")
-            {
-                resultadosFiltrados = resultadosFiltrados.Where(s => s.Descripcion.ToLower().Contains(ValorFiltro.ToLower())).ToList();
-            }
-            else if (Filtro == "Complejidad")
-            {
-                var complejidad = ValorFiltro.ToLower();
-                if (complejidad == "baja" || complejidad == "media" || complejidad == "alta")
-                {
-                    resultadosFiltrados = resultadosFiltrados.Where(s => s.Complejidad.ToLower() == complejidad).ToList();
-                }
+                case "SistemaId":
+                    if (int.TryParse(ValorFiltro, out var sistemaId))
+                        resultadosFiltrados = resultadosFiltrados.Where(s => s.SistemaId == sistemaId).ToList();
+                    break;
+
+                case "Descripcion":
+                    resultadosFiltrados = resultadosFiltrados
+                        .Where(s => s.Descripcion?.Contains(ValorFiltro, StringComparison.OrdinalIgnoreCase) == true)
+                        .ToList();
+                    break;
+
+                case "Complejidad":
+                    resultadosFiltrados = resultadosFiltrados
+                        .Where(s => s.Complejidad?.Contains(ValorFiltro, StringComparison.OrdinalIgnoreCase) == true)
+                        .ToList();
+                    break;
             }
         }
 
@@ -152,18 +155,19 @@
             AplicarPaginacion();
         }
     }
-    private string GetComplejidad(string complejidad)
+
+    private string GetComplejidad(string? complejidad)
     {
-        switch (complejidad.ToLower())
+        if (string.IsNullOrWhiteSpace(complejidad))
+            return "Desconocido";
+
+        var valor = complejidad.Trim().ToLower();
+        return valor switch
         {
-            case "1":
-                return "Baja";
-            case "2":
-                return "Media";
-            case "3":
-                return "Alta";
-            default:
-                return "Desconocido";
-        }
+            "baja" => "Baja",
+            "media" => "Media",
+            "alta" => "Alta",
+            _ => valor // Muestra el valor tal como viene si no coincide con las 3 esperadas
+        };
     }
 }

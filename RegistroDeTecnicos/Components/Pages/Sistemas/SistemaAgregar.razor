@@ -44,6 +44,13 @@
                 </InputSelect>
                 <ValidationMessage For="(() => Sistema.Complejidad)" />
             </div>
+
+            <!-- Campo para cantidad de existencia -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">Cantidad de Existencia</label>
+                <InputNumber class="form-control" @bind-Value="Sistema.Existencia" />
+                <ValidationMessage For="(() => Sistema.Existencia)" />
+            </div>
         </div>
 
         <div class="card-footer text-center">
