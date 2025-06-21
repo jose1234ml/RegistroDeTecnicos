@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RegistroDeTecnicos.Components.DAL;
 
@@ -10,9 +11,11 @@ using RegistroDeTecnicos.Components.DAL;
 namespace RegistroDeTecnicos.Migrations
 {
     [DbContext(typeof(Contexto))]
-    partial class ContextoModelSnapshot : ModelSnapshot
+    [Migration("20250619021934_DataBase7")]
+    partial class DataBase7
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.5");
@@ -138,7 +141,7 @@ namespace RegistroDeTecnicos.Migrations
 
             modelBuilder.Entity("RegistroDeTecnicos.Components.Model.VentaDetalle", b =>
                 {
-                    b.Property<int>("VentaDetalleId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -151,16 +154,19 @@ namespace RegistroDeTecnicos.Migrations
                     b.Property<int>("SistemaId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("VentaDetalleId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("VentaId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("VentaDetalleId");
+                    b.HasKey("Id");
 
                     b.HasIndex("SistemaId");
 
                     b.HasIndex("VentaId");
 
-                    b.ToTable("VentaDetalles");
+                    b.ToTable("VentasDetalle");
                 });
 
             modelBuilder.Entity("Sistema", b =>
@@ -173,9 +179,6 @@ namespace RegistroDeTecnicos.Migrations
                         .IsRequired()
                         .HasMaxLength(5)
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("Costo")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
@@ -195,7 +198,8 @@ namespace RegistroDeTecnicos.Migrations
                     b.HasOne("RegistroDeTecnicos.Components.Model.Tecnicos", "Tecnico")
                         .WithMany()
                         .HasForeignKey("TecnicoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Tecnico");
                 });
@@ -235,18 +239,16 @@ namespace RegistroDeTecnicos.Migrations
                     b.HasOne("Sistema", "Sistema")
                         .WithMany()
                         .HasForeignKey("SistemaId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RegistroDeTecnicos.Components.Model.Venta", "Venta")
+                    b.HasOne("RegistroDeTecnicos.Components.Model.Venta", null)
                         .WithMany("Detalles")
                         .HasForeignKey("VentaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Sistema");
-
-                    b.Navigation("Venta");
                 });
 
             modelBuilder.Entity("RegistroDeTecnicos.Components.Model.Venta", b =>
