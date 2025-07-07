@@ -1,21 +1,13 @@
 ﻿@page "/Sistema/Crear"
 
 @inject SistemaService sistemaService
+@inject IToastService toastService
 @rendermode InteractiveServer
 
 <PageTitle>Crear Sistema</PageTitle>
 
 <EditForm Model="Sistema" OnValidSubmit="Guardar">
     <DataAnnotationsValidator />
-
-    @if (!string.IsNullOrEmpty(ErrorGuardar))
-    {
-        <div class="alert alert-danger">@ErrorGuardar</div>
-    }
-    @if (!string.IsNullOrEmpty(GuardarExito))
-    {
-        <div class="alert alert-success">@GuardarExito</div>
-    }
 
     <div class="container card shadow-lg mt-4 p-0">
         <header class="bg-primary text-white py-4 px-4 border-bottom d-flex justify-content-center align-items-center">
@@ -45,7 +37,6 @@
                 <ValidationMessage For="(() => Sistema.Complejidad)" />
             </div>
 
-            <!-- Campo para cantidad de existencia -->
             <div class="mb-3">
                 <label class="form-label fw-bold">Cantidad de Existencia</label>
                 <InputNumber class="form-control" @bind-Value="Sistema.Existencia" />
@@ -71,8 +62,6 @@
 
 @code {
     private Sistema Sistema { get; set; } = new Sistema();
-    private string GuardarExito { get; set; } = string.Empty;
-    private string ErrorGuardar { get; set; } = string.Empty;
 
     public void Nuevo()
     {
@@ -81,29 +70,26 @@
 
     private async Task<bool> Validar()
     {
-        ErrorGuardar = string.Empty;
         return !await sistemaService.ExisteDescripcion(Sistema.Descripcion);
     }
 
     public async Task Guardar()
     {
-        ErrorGuardar = GuardarExito = string.Empty;
-
         if (!await Validar())
         {
-            ErrorGuardar = "Ya existe un sistema con esa descripción.";
+            toastService.ShowError("Ya existe un sistema con esa descripción.");
             return;
         }
 
         var guardo = await sistemaService.Guardar(this.Sistema);
         if (guardo != null)
         {
-            GuardarExito = "Sistema guardado correctamente";
+            toastService.ShowSuccess("Sistema guardado correctamente.");
             Nuevo();
         }
         else
         {
-            ErrorGuardar = "Error al guardar el sistema";
+            toastService.ShowError("Error al guardar el sistema.");
         }
     }
 }
