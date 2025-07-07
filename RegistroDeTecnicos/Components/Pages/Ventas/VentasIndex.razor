@@ -16,16 +16,17 @@
         <div class="row mb-3">
             <div class="col-md-3">
                 <label class="form-label fw-bold">Filtrar por</label>
-                <InputSelect class="form-select" @bind-Value="Filtro">
-                    <option disabled selected value="">Seleccione una opción</option>
-                    <option value="Cliente">Cliente</option>
-                    <option value="Fecha">Fecha</option>
+                <InputSelect class="form-select" @bind-Value="FiltroSeleccionado">
+                    <option disabled selected value="">Seleccione un filtro</option>
+                    <option value="Cliente">Nombre del Cliente</option>
+                    <option value="Sistema">Nombre del Sistema</option>
                 </InputSelect>
             </div>
+
             <div class="col-md-3">
                 <label class="form-label fw-bold">Valor</label>
                 <div class="input-group">
-                    <input class="form-control" @bind="ValorFiltro" placeholder="Valor del filtro" />
+                    <input class="form-control" @bind="ValorFiltro" placeholder="Buscar" />
                     <button class="btn btn-primary" @onclick="Buscar">
                         <i class="bi bi-search"></i>
                     </button>
@@ -43,15 +44,11 @@
             </div>
         </div>
 
-        @if (Ventas == null)
-        {
-            <p><em>Cargando ventas...</em></p>
-        }
-        else
+        @if (PaginacionVentas?.Items?.Any() == true)
         {
             <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle text-center">
-                    <thead class="table-light">
+                <table class="table align-middle text-center">
+                    <thead>
                         <tr>
                             <th>Venta Id</th>
                             <th>Fecha</th>
@@ -75,7 +72,7 @@
                                     <td>@detalle.Sistema?.Descripcion</td>
                                     <td>@detalle.Cantidad</td>
                                     <td>@detalle.Precio.ToString("N2")</td>
-                                    <td>@(detalle.Cantidad* detalle.Precio)</td>
+                                    <td>@(detalle.Cantidad * detalle.Precio)</td>
                                     <td>
                                         <a href="/Ventas/Modificar/@venta.VentaId" class="btn btn-outline-primary btn-sm">
                                             <i class="bi bi-pencil-square"></i>
@@ -87,6 +84,10 @@
                     </tbody>
                 </table>
             </div>
+        }
+        else
+        {
+            <p class="text-center mt-4">No hay ventas disponibles para mostrar.</p>
         }
     </div>
 
@@ -107,12 +108,12 @@
 </section>
 
 @code {
-    private List<Venta>? TodasLasVentas;
-    private List<Venta>? Ventas;
-    private Paginacion<Venta> PaginacionVentas;
+    private List<Venta> TodasLasVentas = new();
+    private List<Venta> VentasFiltradas = new();
+    private Paginacion<Venta>? PaginacionVentas;
 
-    public string Filtro { get; set; } = string.Empty;
-    public string ValorFiltro { get; set; } = string.Empty;
+    private string FiltroSeleccionado { get; set; } = string.Empty;
+    private string ValorFiltro { get; set; } = string.Empty;
     private DateTime? FechaDesde { get; set; }
     private DateTime? FechaHasta { get; set; }
 
@@ -121,45 +122,59 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await CargarTodasLasVentas();
+        AplicarPaginacion();
+    }
+
+    private async Task CargarTodasLasVentas()
+    {
         TodasLasVentas = await _context.Ventas
             .Include(v => v.Cliente)
             .Include(v => v.Detalles)
                 .ThenInclude(d => d.Sistema)
+            .OrderByDescending(v => v.Fecha)
             .ToListAsync();
-
-        Ventas = new List<Venta>(TodasLasVentas);
-        AplicarPaginacion();
     }
 
-    private void Buscar()
+    private async Task Buscar()
     {
-        Ventas = new List<Venta>(TodasLasVentas);
+        await CargarTodasLasVentas(); // Siempre parte de toda la lista
 
         if (FechaDesde.HasValue)
-            Ventas = Ventas?.Where(v => v.Fecha.Date >= FechaDesde.Value.Date).ToList();
+            TodasLasVentas = TodasLasVentas.Where(v => v.Fecha.Date >= FechaDesde.Value.Date).ToList();
 
         if (FechaHasta.HasValue)
-            Ventas = Ventas?.Where(v => v.Fecha.Date <= FechaHasta.Value.Date).ToList();
+            TodasLasVentas = TodasLasVentas.Where(v => v.Fecha.Date <= FechaHasta.Value.Date).ToList();
 
-        if (!string.IsNullOrWhiteSpace(Filtro) && !string.IsNullOrWhiteSpace(ValorFiltro))
+        if (!string.IsNullOrWhiteSpace(FiltroSeleccionado) && !string.IsNullOrWhiteSpace(ValorFiltro))
         {
-            if (Filtro == "Cliente")
+            var texto = ValorFiltro.Trim().ToLower();
+
+            switch (FiltroSeleccionado)
             {
-                Ventas = Ventas?.Where(v => v.Cliente?.Nombres?.ToLower().Contains(ValorFiltro.ToLower()) == true).ToList();
-            }
-            else if (Filtro == "Fecha" && DateTime.TryParse(ValorFiltro, out var fechaFiltro))
-            {
-                Ventas = Ventas?.Where(v => v.Fecha.Date == fechaFiltro.Date).ToList();
+                case "Cliente":
+                    TodasLasVentas = TodasLasVentas
+                        .Where(v => v.Cliente?.Nombres?.ToLower().Contains(texto) == true)
+                        .ToList();
+                    break;
+
+                case "Sistema":
+                    TodasLasVentas = TodasLasVentas
+                        .Where(v => v.Detalles.Any(d => d.Sistema?.Descripcion?.ToLower().Contains(texto) == true))
+                        .ToList();
+                    break;
             }
         }
 
+        VentasFiltradas = TodasLasVentas;
         PaginaActual = 1;
         AplicarPaginacion();
     }
 
     private void AplicarPaginacion()
     {
-        PaginacionVentas = new Paginacion<Venta>(Ventas, PaginaActual, ElementosPorPagina);
+        VentasFiltradas = TodasLasVentas;
+        PaginacionVentas = new Paginacion<Venta>(VentasFiltradas, PaginaActual, ElementosPorPagina);
     }
 
     private void CambiarPagina(int nuevaPagina)
@@ -168,6 +183,23 @@
         {
             PaginaActual = nuevaPagina;
             AplicarPaginacion();
+        }
+    }
+
+    public class Paginacion<T>
+    {
+        public int PaginaActual { get; private set; }
+        public int TotalPaginas { get; private set; }
+        public List<T> Items { get; private set; }
+        public bool TienePaginaAnterior => PaginaActual > 1;
+        public bool TienePaginaSiguiente => PaginaActual < TotalPaginas;
+
+        public Paginacion(List<T> source, int pageNumber, int pageSize)
+        {
+            var total = source.Count;
+            TotalPaginas = (int)Math.Ceiling(total / (double)pageSize);
+            PaginaActual = pageNumber > TotalPaginas ? TotalPaginas : pageNumber;
+            Items = source.Skip((PaginaActual - 1) * pageSize).Take(pageSize).ToList();
         }
     }
 }
